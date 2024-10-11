@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitSync.GitLab", "src\GitSync.GitLab\GitSync.GitLab.csproj", "{AFED53A8-5AD2-4330-A47E-DDD63E0CE7EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitSync.GitLab.Tool", "src\GitSync.GitLab.Tool\GitSync.GitLab.Tool.csproj", "{B59948A1-0E5C-44FA-92A3-F06929F05208}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitSync.GitLab.Tests", "test\unit\GitSync.GitLab.Tests.csproj", "{7B89A6A9-5796-448E-9D4A-84F2D651C83C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AFED53A8-5AD2-4330-A47E-DDD63E0CE7EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFED53A8-5AD2-4330-A47E-DDD63E0CE7EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFED53A8-5AD2-4330-A47E-DDD63E0CE7EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFED53A8-5AD2-4330-A47E-DDD63E0CE7EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B59948A1-0E5C-44FA-92A3-F06929F05208}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B59948A1-0E5C-44FA-92A3-F06929F05208}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B59948A1-0E5C-44FA-92A3-F06929F05208}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B59948A1-0E5C-44FA-92A3-F06929F05208}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B89A6A9-5796-448E-9D4A-84F2D651C83C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B89A6A9-5796-448E-9D4A-84F2D651C83C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B89A6A9-5796-448E-9D4A-84F2D651C83C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B89A6A9-5796-448E-9D4A-84F2D651C83C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+	EndGlobalSection
+EndGlobal

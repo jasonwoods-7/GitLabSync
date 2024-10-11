@@ -1,0 +1,33 @@
+name: .NET CD
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4.1.7
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Semantic Release
+      uses: cycjimmy/semantic-release-action@v4
+      id: semantic
+      with:
+        dry_run: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore -p:VersionPrefix=${{ steps.semantic.outputs.new_release_version }} -c Release
+    - name: Test
+      run: dotnet test --no-build --verbosity normal -c Release
+    - name: Pack
+      run: dotnet pack -c Release -o .ci-nuget
+    - name: Push Package to NuGet.org
+      run: dotnet nuget push .ci-nuget/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
