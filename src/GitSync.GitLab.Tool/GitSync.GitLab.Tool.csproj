@@ -10,6 +10,7 @@
     <PackAsTool>True</PackAsTool>
     <CopyLocalLockFileAssemblies>True</CopyLocalLockFileAssemblies>
     <PublishRepositoryUrl>True</PublishRepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
