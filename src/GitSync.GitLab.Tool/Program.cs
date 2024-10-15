@@ -26,7 +26,7 @@ if (args.Length == 1)
     return await SynchronizeRepositoriesAsync(path, credentials).ConfigureAwait(false);
 }
 
-return await SynchronizeRepositoriesAsync("githubsync.yaml", credentials).ConfigureAwait(false);
+return await SynchronizeRepositoriesAsync("gitlabsync.yaml", credentials).ConfigureAwait(false);
 
 static async Task<int> SynchronizeRepositoriesAsync(string fileName, ICredentials credentials)
 {
