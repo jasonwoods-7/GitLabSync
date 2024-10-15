@@ -1,7 +1,7 @@
 name: .NET CD
 
 on:
-  push:
+  create:
     tags:
       - v*
 
@@ -19,6 +19,10 @@ jobs:
       id: semantic
       with:
         dry_run: true
+        extends: |
+          @semantic-release/commit-analyzer
+          @semantic-release/release-notes-generator
+          @semantic-release/github
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Restore dependencies

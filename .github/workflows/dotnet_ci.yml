@@ -20,6 +20,10 @@ jobs:
       id: semantic
       with:
         dry_run: true
+        extends: |
+          @semantic-release/commit-analyzer
+          @semantic-release/release-notes-generator
+          @semantic-release/github
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Set Build Version
@@ -49,5 +53,10 @@ jobs:
         retention-days: 5
     - name: Semantic Release Tag
       uses: cycjimmy/semantic-release-action@v4
+      with:
+        extends: |
+          @semantic-release/commit-analyzer
+          @semantic-release/release-notes-generator
+          @semantic-release/github
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
