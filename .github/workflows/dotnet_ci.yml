@@ -44,7 +44,7 @@ jobs:
     - name: Test
       run: dotnet test -c Release --no-build --verbosity normal
     - name: Pack
-      run: dotnet pack -c Release -o ./.ci-nuget
+      run: dotnet pack -c Release -o ./.ci-nuget -p:PackageVersion=${{ steps.version.outputs.num }}
     - name: Upload nupkg
       uses: actions/upload-artifact@v4.4.3
       with:

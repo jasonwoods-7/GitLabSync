@@ -30,6 +30,6 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal -c Release
     - name: Pack
-      run: dotnet pack -c Release -o ./.ci-nuget
+      run: dotnet pack -c Release -o ./.ci-nuget -p:PackageVersion=${{ steps.semantic.outputs.last_release_version }}
     - name: Push Package to NuGet.org
       run: dotnet nuget push ./.ci-nuget/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
