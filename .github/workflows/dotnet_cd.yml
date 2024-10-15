@@ -1,9 +1,8 @@
 name: .NET CD
 
 on:
-  create:
-    tags:
-      - v*
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -21,17 +20,16 @@ jobs:
         dry_run: true
         extends: |
           @semantic-release/commit-analyzer
-          @semantic-release/release-notes-generator
           @semantic-release/github
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore -p:VersionPrefix=${{ steps.semantic.outputs.new_release_version }} -c Release
+      run: dotnet build --no-restore -p:VersionPrefix=${{ steps.semantic.outputs.last_release_version }} -c Release
     - name: Test
       run: dotnet test --no-build --verbosity normal -c Release
     - name: Pack
-      run: dotnet pack -c Release -o .ci-nuget
+      run: dotnet pack -c Release -o ./.ci-nuget
     - name: Push Package to NuGet.org
-      run: dotnet nuget push .ci-nuget/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
+      run: dotnet nuget push ./.ci-nuget/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json

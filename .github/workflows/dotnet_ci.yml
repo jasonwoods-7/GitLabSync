@@ -44,12 +44,14 @@ jobs:
     - name: Test
       run: dotnet test -c Release --no-build --verbosity normal
     - name: Pack
-      run: dotnet pack -c Release -o .ci-nuget
+      run: dotnet pack -c Release -o ./.ci-nuget
     - name: Upload nupkg
       uses: actions/upload-artifact@v4.4.3
       with:
         name: nuget
-        path: .ci-nuget/*.nupkg
+        path: ./.ci-nuget/*.nupkg
+        if-no-files-found: error
+        include-hidden-files: true
         retention-days: 5
     - name: Semantic Release Tag
       uses: cycjimmy/semantic-release-action@v4
