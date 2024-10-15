@@ -52,7 +52,6 @@ jobs:
         path: .ci-nuget/*.nupkg
         retention-days: 5
     - name: Semantic Release Tag
-      if: steps.semantic.outputs.new_realease_published == 'true'
       uses: cycjimmy/semantic-release-action@v4
       with:
         extends: |
