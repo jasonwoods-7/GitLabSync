@@ -8,7 +8,7 @@ var gitlabHostUrl = Environment.GetEnvironmentVariable("GitLab_HostUrl");
 
 if (string.IsNullOrWhiteSpace(gitlabToken))
 {
-    Console.WriteLine("No environment variable 'Octokit_OAuthToken' found");
+    Console.WriteLine("No environment variable 'GitLab_OAuthToken' found");
     return 1;
 }
 
