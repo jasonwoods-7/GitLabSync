@@ -41,12 +41,12 @@ The configuration format is yaml. There should be 1 to n number of templates and
 templates:
   - name: [template name]
     url: [repository url of the template]
-    branch: [branch to use, defaults to `master`]
+    branch: [branch to use, defaults to `main`]
     
 repositories:
   - name: [repository name]
     url: [repository url of the target repository]
-    branch: [target branch, defaults to `master`]
+    branch: [target branch, defaults to `main`]
     templates:
       - [list of template names to use in the order to apply]
 ```
