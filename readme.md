@@ -1,5 +1,8 @@
 # GitLabSync
 
+![Build Status](https://github.com/jasonwoods-7/GitLabSync/actions/workflows/dotnet_ci.yml/badge.svg)
+[![NuGet Status](https://img.shields.io/nuget/v/GitLabSync.Tool.svg?label=GitLabSync.Tool)](https://www.nuget.org/packages/GitLabSync.Tool/)
+
 A tool to help synchronize specific files and folders across repositories in GitLab.
 
 This tool is based on [GitHubSync](https://github.com/SimonCropp/GitHubSync) by Simon Cropp.
