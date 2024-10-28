@@ -14,7 +14,7 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
     readonly Dictionary<string, Tuple<Parts, ITreeResponse>?> treeCachePerPath = [];
     readonly Dictionary<string, Commit> commitCachePerOwnerRepositoryBranch = new(StringComparer.OrdinalIgnoreCase);
     readonly Dictionary<string, INewTree> treeCache = new(StringComparer.OrdinalIgnoreCase);
-    readonly Dictionary<string, (string, string)> commitCache = new(StringComparer.OrdinalIgnoreCase);
+    readonly Dictionary<string, (string, string, string)> commitCache = new(StringComparer.OrdinalIgnoreCase);
     readonly Dictionary<string, ISet<string>> knownBlobsPerRepository = new(StringComparer.OrdinalIgnoreCase);
     readonly Dictionary<string, ISet<string>> knownTreesPerRepository = new(StringComparer.OrdinalIgnoreCase);
 
@@ -107,7 +107,7 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
         {
             var tree = client
                 .GetRepository(await client.GetProjectId(source.Owner, source.Repository))
-                .GetTreeAsync(new() { Path = source.Path });
+                .GetTreeAsync(new() { Ref = source.Branch, Path = source.Path });
 
             var treeResponse = new TreeResponse(source.Path ?? "", tree);
             result = new(source, treeResponse);
@@ -141,7 +141,7 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
         {
             blob = client
                 .GetRepository(await client.GetProjectId(source.Owner, source.Repository))
-                .GetTreeAsync(new() { Path = parentPath })
+                .GetTreeAsync(new() { Ref = source.Branch, Path = parentPath })
                 .FirstOrDefault(t => t.Name == source.Name);
         }
         catch (GitLabException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
@@ -214,7 +214,7 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
     {
         var commitId = await GitHashHelper.GetCommitHash(treeSha, parentCommitSha, client.Users.Current);
 
-        this.commitCache[commitId] = (treeSha, parentCommitSha);
+        this.commitCache[commitId] = (treeSha, parentCommitSha, branch);
 
         return commitId;
     }
@@ -265,10 +265,10 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
 
     public async Task<string> CreateBranch(string owner, string repository, string branchName, string commitSha)
     {
-        var (treeSha, parentCommitSha) = this.commitCache[commitSha];
+        var (treeSha, parentCommitSha, sourceBranch) = this.commitCache[commitSha];
 
         var repo = client.GetRepository(await client.GetProjectId(owner, repository));
-        var parentTree = repo.GetTreeAsync(new() { Recursive = true }).ToList();
+        var parentTree = repo.GetTreeAsync(new() { Ref = sourceBranch, Recursive = true }).ToList();
         var updatedTree = this.treeCache[treeSha]
             .Tree
             .SelectMany(t =>
