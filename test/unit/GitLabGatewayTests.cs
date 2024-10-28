@@ -424,7 +424,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
         await gateway.FetchBlob("group", "project", HelloWorldSha);
 
         var treeId = await gateway.CreateTree(newTree, "group", "project");
-        var commitId = await gateway.CreateCommit(treeId, "group", "project", "main", "branch");
+        var commitId = await gateway.CreateCommit(treeId, "group", "project", "main", "main");
 
         // Act
         var branch = await gateway.CreateBranch("group", "project", "branch", commitId);
@@ -453,7 +453,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
         await gateway.FetchBlob("group", "project", HelloWorldSha);
 
         var treeId = await gateway.CreateTree(newTree, "group", "project");
-        var commitId = await gateway.CreateCommit(treeId, "group", "project", "main", "branch");
+        var commitId = await gateway.CreateCommit(treeId, "group", "project", "main", "main");
 
         // Act
         var branch = await gateway.CreateBranch("group", "project", "branch", commitId);
@@ -480,7 +480,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
         await gateway.FetchBlob("group", "project2", HelloWorldSha);
 
         var treeId = await gateway.CreateTree(newTree, "group", "project");
-        var commitId = await gateway.CreateCommit(treeId, "group", "project", "main", "branch");
+        var commitId = await gateway.CreateCommit(treeId, "group", "project", "main", "main");
 
         // Act
         var branch = await gateway.CreateBranch("group", "project", "branch", commitId);
@@ -511,7 +511,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
         newTree.Tree.Add("100755", "hello.sh", scriptSha, TreeType.Blob);
 
         var treeId = await gateway.CreateTree(newTree, "group", "project");
-        var commitId = await gateway.CreateCommit(treeId, "group", "project", "main", "branch");
+        var commitId = await gateway.CreateCommit(treeId, "group", "project", "main", "main");
 
         // Act
         var branch = await gateway.CreateBranch("group", "project", "branch", commitId);
@@ -536,7 +536,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
         await gateway.FetchBlob("owner", "group/project", HelloWorldSha);
 
         var treeId = await gateway.CreateTree(newTree, "owner", "group/project");
-        var commitId = await gateway.CreateCommit(treeId, "owner", "group/project", "main", "branch");
+        var commitId = await gateway.CreateCommit(treeId, "owner", "group/project", "main", "main");
 
         _ = await gateway.CreateBranch("owner", "group/project", "branch", commitId);
 
@@ -563,7 +563,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
         await gateway.FetchBlob("group", "project", HelloWorldSha);
 
         var treeId = await gateway.CreateTree(newTree, "group", "project");
-        var commitId = await gateway.CreateCommit(treeId, "group", "project", "main", "branch");
+        var commitId = await gateway.CreateCommit(treeId, "group", "project", "main", "main");
 
         _ = await gateway.CreateBranch("group", "project", "branch", commitId);
 
