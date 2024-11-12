@@ -24,6 +24,10 @@ dotnet tool install -g GitLabSync.Tool
 
 ### Usage
 
+To run the tool with your gitlab credentials, you need to set the environment variable `GitLab_OAuthToken` with a personal access token as the value.
+
+You can also set the environment variable `GitLab_HostUrl` to the host of your GitLab instance. This is optional and defaults to `https://gitlab.com`.
+
 Run against the current directory will use `gitlabsync.yaml` in the current directory:
 
 ```ps
