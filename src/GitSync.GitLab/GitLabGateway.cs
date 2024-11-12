@@ -229,7 +229,11 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
         return treeId;
     }
 
-    public async Task CreateBlob(string owner, string repository, string sha)
+    public
+#if DEBUG
+        async
+#endif
+        Task CreateBlob(string owner, string repository, string sha)
     {
 #if DEBUG
         var blobPath = Path.Combine(this.blobStoragePath.Value, sha);
@@ -241,6 +245,10 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
 #endif
 
         this.AddToKnown<IBlob>(sha, owner, repository);
+
+#if !DEBUG
+        return Task.CompletedTask;
+#endif
     }
 
     public async Task FetchBlob(string owner, string repository, string sha)
