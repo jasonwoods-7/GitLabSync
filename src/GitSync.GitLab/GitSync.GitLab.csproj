@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="ConfigureAwait.Fody" Version="3.3.2" PrivateAssets="all" />
-    <PackageReference Include="Fody" Version="6.9.0" PrivateAssets="all" />
+    <PackageReference Include="Fody" Version="6.9.1" PrivateAssets="all" />
     <PackageReference Include="GitSync" Version="2.0.0-beta.1" />
     <PackageReference Include="NGitLab" Version="6.57.0" />
     <PackageReference Include="System.Text.Json" Version="9.0.0" />
