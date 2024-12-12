@@ -1,3 +1,5 @@
+using GitSync.GitProvider;
+
 namespace GitSync.GitLab;
 
 sealed class NewTreeItemCollection(string parentPath)

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Net;
+using GitSync.GitProvider;
 using NGitLab;
 using NGitLab.Models;
 
@@ -14,7 +15,7 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
     readonly Dictionary<string, Tuple<Parts, ITreeResponse>?> treeCachePerPath = [];
     readonly Dictionary<string, Commit> commitCachePerOwnerRepositoryBranch = new(StringComparer.OrdinalIgnoreCase);
     readonly Dictionary<string, INewTree> treeCache = new(StringComparer.OrdinalIgnoreCase);
-    readonly Dictionary<string, (string, string, string)> commitCache = new(StringComparer.OrdinalIgnoreCase);
+    readonly Dictionary<string, (string, string, string, string)> commitCache = new(StringComparer.OrdinalIgnoreCase);
     readonly Dictionary<string, ISet<string>> knownBlobsPerRepository = new(StringComparer.OrdinalIgnoreCase);
     readonly Dictionary<string, ISet<string>> knownTreesPerRepository = new(StringComparer.OrdinalIgnoreCase);
 
@@ -210,11 +211,11 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
         throw new NotSupportedException();
     }
 
-    public async Task<string> CreateCommit(string treeSha, string owner, string repo, string parentCommitSha, string branch)
+    public async Task<string> CreateCommit(string treeSha, string owner, string repo, string parentCommitSha, string branch, string commitMessage)
     {
-        var commitId = await GitHashHelper.GetCommitHash(treeSha, parentCommitSha, client.Users.Current);
+        var commitId = await GitHashHelper.GetCommitHash(treeSha, parentCommitSha, commitMessage, client.Users.Current);
 
-        this.commitCache[commitId] = (treeSha, parentCommitSha, branch);
+        this.commitCache[commitId] = (treeSha, parentCommitSha, commitMessage, branch);
 
         return commitId;
     }
@@ -273,7 +274,7 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
 
     public async Task<string> CreateBranch(string owner, string repository, string branchName, string commitSha)
     {
-        var (treeSha, parentCommitSha, sourceBranch) = this.commitCache[commitSha];
+        var (treeSha, parentCommitSha, commitMessage, sourceBranch) = this.commitCache[commitSha];
 
         var repo = client.GetRepository(await client.GetProjectId(owner, repository));
         var parentTree = repo.GetTreeAsync(new() { Ref = sourceBranch, Recursive = true }).ToList();
@@ -295,7 +296,7 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
             .GetCommits(await client.GetProjectId(owner, repository))
             .Create(new()
             {
-                CommitMessage = $"chore(sync): gitLabSync update - {branchName}",
+                CommitMessage = commitMessage,
                 Branch = branchName,
                 StartSha = parentCommitSha.ToLower(CultureInfo.InvariantCulture),
                 Actions = updatedTree
@@ -356,7 +357,7 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
         }
     }
 
-    public async Task<int> CreatePullRequest(string owner, string repository, string branch, string targetBranch, bool merge, string? description)
+    public async Task<int> CreatePullRequest(string owner, string repository, string branch, string targetBranch, bool merge, string title, string? description)
     {
         var mergeRequest = client
             .GetMergeRequest(await client.GetProjectId(owner, repository))
@@ -364,7 +365,7 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
             {
                 SourceBranch = branch,
                 TargetBranch = targetBranch,
-                Title = $"GitHubSync update - {targetBranch}",
+                Title = title,
                 Description = description,
                 RemoveSourceBranch = true
             });

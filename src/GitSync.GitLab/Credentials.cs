@@ -1,5 +1,7 @@
 using System.Net;
+using GitSync.GitProvider;
 using NGitLab;
+using ICredentials = GitSync.GitProvider.ICredentials;
 
 namespace GitSync.GitLab;
 

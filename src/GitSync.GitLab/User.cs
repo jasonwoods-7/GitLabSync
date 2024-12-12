@@ -1,3 +1,4 @@
+using GitSync.GitProvider;
 using NGitLab.Models;
 
 namespace GitSync.GitLab;
