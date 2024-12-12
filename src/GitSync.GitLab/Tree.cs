@@ -1,3 +1,5 @@
+using GitSync.GitProvider;
+
 namespace GitSync.GitLab;
 
 sealed class Tree(string sha) : ITree

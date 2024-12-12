@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using GitSync.GitProvider;
 
 namespace GitSync.GitLab;
 

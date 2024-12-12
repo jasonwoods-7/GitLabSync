@@ -1,3 +1,5 @@
+using GitSync.GitProvider;
+
 namespace GitSync.GitLab;
 
 sealed class TreeResponse(string path, IEnumerable<NGitLab.Models.Tree> tree) : ITreeResponse

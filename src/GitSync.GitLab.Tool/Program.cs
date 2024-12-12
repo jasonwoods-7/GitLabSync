@@ -1,7 +1,9 @@
 using System.Diagnostics;
+using GitSync;
 using GitSync.GitLab;
 using GitSync.GitLab.Tool;
 using GitSync.GitLab.Tool.Config;
+using GitSync.GitProvider;
 
 var gitlabToken = Environment.GetEnvironmentVariable("GitLab_OAuthToken");
 var gitlabHostUrl = Environment.GetEnvironmentVariable("GitLab_HostUrl");
@@ -83,7 +85,12 @@ static Task<IReadOnlyList<UpdateResult>> SyncRepository(Context context, Reposit
         syncOutput = SyncOutput.MergePullRequest;
     }
 
-    return sync.Sync(syncOutput);
+    var branchName = $"GitLabSync-{DateTime.Now:yyyyMMdd-HHmmss}";
+    return sync.Sync(
+        $"GitLabSync update - {targetRepository.Branch}",
+        branchName,
+        $"chore(sync): gitLabSync update - {branchName}",
+        syncOutput);
 }
 
 static RepositoryInfo BuildInfo(string url, string branch, ICredentials credentials)

@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
+using GitSync.GitProvider;
 using NGitLab.Models;
 
 namespace GitSync.GitLab;
@@ -48,7 +49,7 @@ static class GitHashHelper
         return await ComputeHash(stream, treeStream);
     }
 
-    public static async Task<string> GetCommitHash(string treeSha, string parentCommitSha, Session user)
+    public static async Task<string> GetCommitHash(string treeSha, string parentCommitSha, string commitMessage, Session user)
     {
         var usernameAndDate = $"{user.Username} <{user.Email}> {DateTimeOffset.UtcNow.ToUnixTimeSeconds()} +0000";
 
@@ -57,7 +58,7 @@ static class GitHashHelper
         await commitData.WriteAsync($"parent {parentCommitSha}\n");
         await commitData.WriteAsync($"author {usernameAndDate}\n");
         await commitData.WriteAsync($"committer {usernameAndDate}\n\n");
-        await commitData.WriteAsync("example git commit message");
+        await commitData.WriteAsync(commitMessage);
         await commitData.FlushAsync();
         commitData.Seek(0, SeekOrigin.Begin);
 
