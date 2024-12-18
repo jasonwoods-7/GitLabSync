@@ -16,7 +16,7 @@ public interface IGitProviderGateway : IDisposable
     Task CreateBlob(string owner, string repository, string sha);
     Task FetchBlob(string owner, string repository, string sha);
     Task<string> CreateBranch(string owner, string repository, string branchName, string commitSha);
-    Task<int> CreatePullRequest(string owner, string repository, string branch, string targetBranch, bool merge, string title, string? description);
-    Task<IReadOnlyList<ILabel>> ApplyLabels(string owner, string repository, int issueNumber, string[] labels);
+    Task<long> CreatePullRequest(string owner, string repository, string branch, string targetBranch, bool merge, string title, string? description);
+    Task<IReadOnlyList<ILabel>> ApplyLabels(string owner, string repository, long issueNumber, string[] labels);
     INewTree CreateNewTree(string? path);
 }

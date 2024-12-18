@@ -4,9 +4,9 @@ namespace GitSync.GitLab;
 
 static class GitLabHelpers
 {
-    static readonly Dictionary<string, int> projectIds = [];
+    static readonly Dictionary<string, long> projectIds = [];
 
-    public static async Task<int> GetProjectId(this IGitLabClient client, string owner, string name)
+    public static async Task<long> GetProjectId(this IGitLabClient client, string owner, string name)
     {
         var key = $"{owner}/{name}";
 

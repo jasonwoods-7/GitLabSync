@@ -357,7 +357,7 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
         }
     }
 
-    public async Task<int> CreatePullRequest(string owner, string repository, string branch, string targetBranch, bool merge, string title, string? description)
+    public async Task<long> CreatePullRequest(string owner, string repository, string branch, string targetBranch, bool merge, string title, string? description)
     {
         var mergeRequest = client
             .GetMergeRequest(await client.GetProjectId(owner, repository))
@@ -373,7 +373,7 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
         return mergeRequest.Iid;
     }
 
-    public async Task<IReadOnlyList<ILabel>> ApplyLabels(string owner, string repository, int issueNumber, string[] labels)
+    public async Task<IReadOnlyList<ILabel>> ApplyLabels(string owner, string repository, long issueNumber, string[] labels)
     {
         if (labels.Length == 0)
         {
