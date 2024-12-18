@@ -11,7 +11,7 @@
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
     <PackageReference Include="FluentAssertions" Version="7.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageReference Include="NGitLab.Mock" Version="6.59.2" />
+    <PackageReference Include="NGitLab.Mock" Version="7.0.0" />
     <PackageReference Include="Verify.ClipboardAccept" Version="28.6.0" />
     <PackageReference Include="Verify.Xunit" Version="28.6.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
