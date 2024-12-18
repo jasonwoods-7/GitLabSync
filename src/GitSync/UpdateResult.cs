@@ -4,5 +4,5 @@ public record UpdateResult(
     string Url,
     string CommitSha,
     string? BranchName,
-    int? PullRequestId
+    long? PullRequestId
 );
