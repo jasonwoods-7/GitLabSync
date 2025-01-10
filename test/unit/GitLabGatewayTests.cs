@@ -229,7 +229,8 @@ public class GitLabGatewayTests(ITestOutputHelper output)
         var tree = await gateway.TreeFrom(new("group", "project", TreeEntryTargetType.Tree, "main", "subFolder"), false);
 
         // Assert
-        tree.Should().BeNull();
+        tree.Should().NotBeNull();
+        tree!.Item2.Tree.Should().BeEmpty();
     }
 
     [Fact]
@@ -244,11 +245,11 @@ public class GitLabGatewayTests(ITestOutputHelper output)
         using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
 
         // Act
-        // ReSharper disable once AccessToDisposedClosure
-        var handler = () => gateway.TreeFrom(new("group", "project", TreeEntryTargetType.Tree, "main", "subFolder"), true);
+        var tree = await gateway.TreeFrom(new("group", "project", TreeEntryTargetType.Tree, "main", "subFolder"), true);
 
         // Assert
-        await handler.Should().ThrowAsync<Exception>();
+        tree.Should().NotBeNull();
+        tree!.Item2.Tree.Should().BeEmpty();
     }
 
     [Fact]
