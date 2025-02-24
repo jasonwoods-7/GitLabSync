@@ -46,7 +46,7 @@ jobs:
     - name: Pack
       run: dotnet pack -c Release -o ./.ci-nuget -p:PackageVersion=${{ steps.version.outputs.num }}
     - name: Upload nupkg
-      uses: actions/upload-artifact@v4.6.0
+      uses: actions/upload-artifact@v4.6.1
       with:
         name: nuget
         path: ./.ci-nuget/*.nupkg
