@@ -1,16 +1,31 @@
 using System.Diagnostics;
+using System.Globalization;
 using GitSync;
 using GitSync.GitLab;
 using GitSync.GitLab.Tool;
 using GitSync.GitLab.Tool.Config;
 using GitSync.GitProvider;
+using Microsoft.Extensions.Logging;
 
 var gitlabToken = Environment.GetEnvironmentVariable("GitLab_OAuthToken");
 var gitlabHostUrl = Environment.GetEnvironmentVariable("GitLab_HostUrl");
 
+using var loggerFactory = LoggerFactory.Create(builder =>
+{
+    builder
+        .AddSimpleConsole(options =>
+        {
+            options.IncludeScopes = true;
+            options.SingleLine = true;
+            options.TimestampFormat = "[HH:mm:ss] ";
+        })
+        .SetMinimumLevel(LogLevel.Trace);
+});
+var logger = loggerFactory.CreateLogger<Program>();
+
 if (string.IsNullOrWhiteSpace(gitlabToken))
 {
-    Console.WriteLine("No environment variable 'GitLab_OAuthToken' found");
+    logger.NoGitLabToken();
     return 1;
 }
 
@@ -21,16 +36,16 @@ if (args.Length == 1)
     var path = Path.GetFullPath(args[0]);
     if (!File.Exists(path))
     {
-        Console.WriteLine("Path does not exist: {0}", path);
+        logger.PathDoesNotExist(path);
         return 1;
     }
 
-    return await SynchronizeRepositoriesAsync(path, credentials).ConfigureAwait(false);
+    return await SynchronizeRepositoriesAsync(path, credentials, logger).ConfigureAwait(false);
 }
 
-return await SynchronizeRepositoriesAsync("gitlabsync.yaml", credentials).ConfigureAwait(false);
+return await SynchronizeRepositoriesAsync("gitlabsync.yaml", credentials, logger).ConfigureAwait(false);
 
-static async Task<int> SynchronizeRepositoriesAsync(string fileName, ICredentials credentials)
+static async Task<int> SynchronizeRepositoriesAsync(string fileName, ICredentials credentials, ILogger logger)
 {
     var context = ContextLoader.Load(fileName);
 
@@ -42,31 +57,32 @@ static async Task<int> SynchronizeRepositoriesAsync(string fileName, ICredential
 
         var prefix = $"[({i + 1} / {repositories.Count})]";
 
-        Console.WriteLine($"{prefix} Setting up synchronization for '{targetRepository}'");
+        logger.SettingUpSynchronization(prefix, targetRepository);
         var stopwatch = Stopwatch.StartNew();
 
         try
         {
-            await SyncRepository(context, targetRepository, credentials).ConfigureAwait(false);
+            await SyncRepository(context, targetRepository, credentials, logger).ConfigureAwait(false);
 
-            Console.WriteLine($"{prefix} Synchronized '{targetRepository}', took {stopwatch.Elapsed:hh\\:mm\\:ss}");
+            logger.Synchronized(prefix, targetRepository, stopwatch.Elapsed.ToString(@"hh\:mm\:ss", CultureInfo.CurrentCulture));
         }
         catch (Exception exception)
         {
             returnValue = 1;
-            Console.WriteLine($"Failed to synchronize '{targetRepository}'. Exception: {exception}");
-
-            Console.WriteLine("Press a key to continue...");
-            Console.ReadKey();
+            logger.FailedToSynchronize(exception, targetRepository);
         }
     }
 
     return returnValue;
 }
 
-static Task<IReadOnlyList<UpdateResult>> SyncRepository(Context context, Repository targetRepository, ICredentials credentials)
+static Task<IReadOnlyList<UpdateResult>> SyncRepository(
+    Context context,
+    Repository targetRepository,
+    ICredentials credentials,
+    ILogger logger)
 {
-    var sync = new RepoSync(Console.WriteLine);
+    var sync = new RepoSync(logger);
 
     var targetInfo = BuildInfo(targetRepository.Url, targetRepository.Branch, credentials);
     sync.AddTargetRepository(targetInfo);
