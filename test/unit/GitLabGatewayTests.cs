@@ -1,15 +1,35 @@
+using System.Globalization;
 using GitSync.GitProvider;
+using Microsoft.Extensions.Logging;
 using NGitLab.Mock.Config;
 using NGitLab.Models;
+using Serilog;
 
 namespace GitSync.GitLab.Tests;
 
-public class GitLabGatewayTests(ITestOutputHelper output)
+public class GitLabGatewayTests : IDisposable
 {
     const string HelloWorldSha = "b45ef6fec89518d314f546fd6c3025367b721684";
     const string EmptyTreeSha = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
 
-    readonly Action<string> writeLine = output.WriteLine;
+    readonly LoggerFactory loggerFactory;
+
+    public GitLabGatewayTests(ITestOutputHelper output)
+    {
+        var logger = new LoggerConfiguration()
+            .MinimumLevel.Verbose()
+            .WriteTo.TestOutput(output, formatProvider: CultureInfo.CurrentCulture)
+            .CreateLogger();
+
+        this.loggerFactory = new LoggerFactory();
+        this.loggerFactory.AddSerilog(logger, true);
+    }
+
+    public void Dispose()
+    {
+        this.loggerFactory.Dispose();
+        GC.SuppressFinalize(this);
+    }
 
     [Fact]
     public async Task GetCurrentUser()
@@ -18,7 +38,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         // Act
         var user = await gateway.GetCurrentUser();
@@ -41,7 +61,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
         using var server = new GitLabConfig()
             .WithProjectOfFullPath("group/project", configure: p => p.WithUserPermission("user", accessLevel))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         // Act
         var isCollaborator = await gateway.IsCollaborator("group", "project");
@@ -65,7 +85,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithGroupOfFullPath("group", configure: g => g.WithUserPermission("user", accessLevel))
             .WithProjectOfFullPath("group/project")
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         // Act
         var isCollaborator = await gateway.IsCollaborator("group", "project");
@@ -82,7 +102,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithUser("user")
             .WithProjectOfFullPath("group/project")
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         // Act
         var isCollaborator = await gateway.IsCollaborator("group", "project");
@@ -99,7 +119,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithUser("user")
             .WithProjectOfFullPath("group/project")
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         // Act
         var fork = await gateway.Fork("group", "project");
@@ -117,7 +137,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
                 .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         using var targetStream = new MemoryStream();
 
@@ -145,7 +165,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
                 }
             })
             .BuildServer();
-        var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         // Act
         var hasOpenPullRequests = await gateway.HasOpenPullRequests("group", "project", "title");
@@ -165,7 +185,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
                 .WithCommit("Second commit", configure: c => c.WithFile("subFolder/hello.txt", "Hello, World!")))
             .BuildServer();
         var client = server.CreateClient();
-        using var gateway = new GitLabGateway(client, this.writeLine);
+        using var gateway = new GitLabGateway(client, this.loggerFactory.CreateLogger<GitLabGateway>());
 
         // Act
         var commit = await gateway.RootCommitFrom(new("group", "project", TreeEntryTargetType.Tree, "main", null));
@@ -185,7 +205,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
                     .WithFile("readme.md", "my readme")
                     .WithFile("subFolder/hello.txt", "Hello, World!")))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         // Act
         var tree = await gateway.TreeFrom(new("group", "project", TreeEntryTargetType.Tree, "main", null), false);
@@ -205,7 +225,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
                     .WithFile("readme.md", "my readme")
                     .WithFile("subFolder/hello.txt", "Hello, World!")))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         // Act
         var tree = await gateway.TreeFrom(new("group", "project", TreeEntryTargetType.Tree, "main", "subFolder"), false);
@@ -223,14 +243,14 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
                 .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         // Act
         var tree = await gateway.TreeFrom(new("group", "project", TreeEntryTargetType.Tree, "main", "subFolder"), false);
 
         // Assert
         tree.Should().NotBeNull();
-        tree!.Item2.Tree.Should().BeEmpty();
+        tree.Item2.Tree.Should().BeEmpty();
     }
 
     [Fact]
@@ -242,14 +262,14 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
                 .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         // Act
         var tree = await gateway.TreeFrom(new("group", "project", TreeEntryTargetType.Tree, "main", "subFolder"), true);
 
         // Assert
         tree.Should().NotBeNull();
-        tree!.Item2.Tree.Should().BeEmpty();
+        tree.Item2.Tree.Should().BeEmpty();
     }
 
     [Fact]
@@ -261,7 +281,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
                 .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         // Act
         var blob = await gateway.BlobFrom(new("group", "project", TreeEntryTargetType.Blob, "main", "readme.md"), false);
@@ -281,7 +301,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
                     .WithFile("readme.md", "Hello, World!")
                     .WithFile("subFolder/hello.txt", "Hello, World!")))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         // Act
         var blob = await gateway.BlobFrom(new("group", "project", TreeEntryTargetType.Blob, "main", "subFolder/hello.txt"), false);
@@ -299,7 +319,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
                 .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         // Act
         var blob = await gateway.BlobFrom(new("group", "project", TreeEntryTargetType.Blob, "main", "hello.txt"), false);
@@ -317,7 +337,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
                 .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         // Act
         var handler = () => gateway.BlobFrom(new("group", "project", TreeEntryTargetType.Blob, "main", "hello.txt"), true);
@@ -335,7 +355,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
                 .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         // Act
         var commit = await gateway.CreateCommit("treeSha", "group", "project", "parentSha", "branch", "chore(sync): gitlab sync");
@@ -352,7 +372,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithUser("user", isDefault: true)
             .WithProjectOfFullPath("group/project")
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         var newTree = gateway.CreateNewTree(null);
 
@@ -374,7 +394,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
                     .WithFile("directory/.gitkeep")))
             .BuildServer();
         var client = server.CreateClient();
-        using var gateway = new GitLabGateway(client, this.writeLine);
+        using var gateway = new GitLabGateway(client, this.loggerFactory.CreateLogger<GitLabGateway>());
 
         var repository = client.GetRepository(1);
         var gitKeep = repository.GetTreeAsync(new() { Path = "directory" }).Single();
@@ -399,7 +419,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
                 .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         await gateway.FetchBlob("group", "project", HelloWorldSha);
 
@@ -419,7 +439,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
                 .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         var newTree = gateway.CreateNewTree(null);
         newTree.Tree.Add("100644", "hello.txt", HelloWorldSha, TreeType.Blob);
@@ -444,7 +464,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
                 .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         var newTree = gateway.CreateNewTree(null);
         var subTree = gateway.CreateNewTree("bin");
@@ -475,7 +495,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithProjectOfFullPath("group/project2", addDefaultUserAsMaintainer: true, configure: p => p
                 .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         var newTree = gateway.CreateNewTree(null);
         newTree.Tree.Add("100644", "readme.md", HelloWorldSha, TreeType.Blob);
@@ -503,7 +523,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithProjectOfFullPath("group/project2", addDefaultUserAsMaintainer: true, configure: p => p
                 .WithCommit("Add script", configure: c => c.WithFile("bin/hello.sh", "echo 'Hello, World!'")))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         var sourceTree = await gateway.TreeFrom(new("group", "project2", TreeEntryTargetType.Tree, "main", "bin"), false);
         var scriptSha = sourceTree!.Item2.Tree.Single().Sha;
@@ -531,7 +551,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithProjectOfFullPath("owner/group/project", addDefaultUserAsMaintainer: true, configure: p => p
                 .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         var newTree = gateway.CreateNewTree(null);
         newTree.Tree.Add("100644", "hello.txt", HelloWorldSha, TreeType.Blob);
@@ -558,7 +578,7 @@ public class GitLabGatewayTests(ITestOutputHelper output)
             .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
                 .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.writeLine);
+        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
 
         var newTree = gateway.CreateNewTree(null);
         newTree.Tree.Add("100644", "hello.txt", HelloWorldSha, TreeType.Blob);

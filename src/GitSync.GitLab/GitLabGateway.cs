@@ -1,13 +1,21 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Net;
 using GitSync.GitProvider;
+using Microsoft.Extensions.Logging;
 using NGitLab;
 using NGitLab.Models;
 
 namespace GitSync.GitLab;
 
-sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProviderGateway
+[SuppressMessage("ReSharper", "AsyncApostle.AsyncMethodNamingHighlighting")]
+[SuppressMessage("ReSharper", "AsyncApostle.ConfigureAwaitHighlighting")]
+sealed class GitLabGateway
+(
+    IGitLabClient client,
+    ILogger logger
+) : IGitProviderGateway
 {
     const string ExecutableMode = "100755";
 
@@ -23,7 +31,7 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
     {
         var path = Path.Combine(Path.GetTempPath(), $"GitHubSync-{Guid.NewGuid()}");
         Directory.CreateDirectory(path);
-        log($"Ctor - Create temp blob storage '{path}'.");
+        logger.CreateTempBlobStorage(path);
         return path;
     });
 
@@ -32,7 +40,7 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
         if (this.blobStoragePath.IsValueCreated)
         {
             Directory.Delete(this.blobStoragePath.Value, true);
-            log($"Dispose - Delete temp blob storage '{this.blobStoragePath.Value}'.");
+            logger.DeleteTempBlobStorage(this.blobStoragePath.Value);
         }
     }
 
@@ -261,7 +269,7 @@ sealed class GitLabGateway(IGitLabClient client, Action<string> log) : IGitProvi
             return;
         }
 
-        log($"API Query - Retrieve blob '{sha[..7]}' details from '{owner}/{repository}'.");
+        logger.RetrieveBlobDetails(sha[..7], owner, repository);
 
         client
             .GetRepository(await client.GetProjectId(owner, repository))

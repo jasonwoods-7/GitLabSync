@@ -1,17 +1,20 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 using GitSync.GitProvider;
+using Microsoft.Extensions.Logging;
 
 namespace GitSync;
 
+[SuppressMessage("ReSharper", "AsyncApostle.AsyncMethodNamingHighlighting")]
+[SuppressMessage("ReSharper", "AsyncApostle.ConfigureAwaitHighlighting")]
 public class RepoSync(
-    Action<string>? log = null,
+    ILogger logger,
     List<string>? labelsToApplyOnPullRequests = null,
     SyncMode? syncMode = SyncMode.IncludeAllByDefault,
     ICredentials? defaultCredentials = null,
     bool skipCollaboratorCheck = false)
 {
-    readonly Action<string> log = log ?? Console.WriteLine;
     readonly List<ManualSyncItem> manualSyncItems = [];
     readonly List<RepositoryInfo> sources = [];
     readonly List<RepositoryInfo> targets = [];
@@ -80,7 +83,7 @@ public class RepoSync(
 
     public async Task<SyncContext> CalculateSyncContext(RepositoryInfo targetRepository)
     {
-        using var syncer = new Syncer(targetRepository.Credentials, null, this.log);
+        using var syncer = new Syncer(targetRepository.Credentials, logger);
         var diffs = new List<Mapper>();
         var includedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -96,7 +99,7 @@ public class RepoSync(
             var displayName = $"{source.Owner}/{source.Repository}";
             var itemsToSync = new List<SyncItem>();
 
-            using var gateway = source.Credentials.CreateGateway(null, this.log);
+            using var gateway = source.Credentials.CreateGateway(null, logger);
             foreach (var item in await GitProviderGatewayExtensions.GetRecursive(gateway, source.Owner, source.Repository, null, source.Branch))
             {
                 if (includedPaths.Contains(item))
@@ -130,7 +133,7 @@ public class RepoSync(
             {
                 foreach (var value in item.Value)
                 {
-                    this.log($"Mapping '{item.Key.Url}' => '{value.Url}'");
+                    logger.Mapping(item.Key.Url, value.Url);
 
                     finalDiff.Add(item.Key, value);
                 }
@@ -150,10 +153,10 @@ public class RepoSync(
             TreeEntryTargetType.Blob,
             source.Branch,
             item);
-        var localManualSyncItems = this.manualSyncItems.Where(_ => item == _.Path).ToList();
+        var localManualSyncItems = this.manualSyncItems.Where(i => item == i.Path).ToList();
         if (localManualSyncItems.Count != 0)
         {
-            itemsToSync.AddRange(localManualSyncItems.Select(_ => new SyncItem(parts, syncMode == SyncMode.ExcludeAllByDefault, _.Target)));
+            itemsToSync.AddRange(localManualSyncItems.Select(m => new SyncItem(parts, syncMode == SyncMode.ExcludeAllByDefault, m.Target)));
 
             return;
         }
@@ -170,7 +173,7 @@ public class RepoSync(
             {
                 var targetRepositoryDisplayName = $"{targetRepository.Owner}/{targetRepository.Repository}";
 
-                using var syncer = new Syncer(targetRepository.Credentials, null, this.log);
+                using var syncer = new Syncer(targetRepository.Credentials, logger);
                 if (!await syncer.CanSynchronize(targetRepository, syncOutput, pullRequestTitle))
                 {
                     continue;
@@ -180,19 +183,19 @@ public class RepoSync(
 
                 if (!syncContext.Diff.ToBeAddedOrUpdatedEntries.Any())
                 {
-                    this.log($"Repo {targetRepositoryDisplayName} is in sync");
+                    logger.RepoInSync(targetRepositoryDisplayName);
                     continue;
                 }
 
                 var sync = await syncer.Sync(syncContext.Diff, syncOutput, branchName, commitMessage, pullRequestTitle, labelsToApplyOnPullRequests, syncContext.Description, skipCollaboratorCheck);
                 if (sync.Count == 0)
                 {
-                    this.log($"Repo {targetRepositoryDisplayName} is in sync");
+                    logger.RepoInSync(targetRepositoryDisplayName);
                     continue;
                 }
 
                 var createdSyncBranch = sync[0];
-                this.log($"Pull created for {targetRepositoryDisplayName}, click here to review and pull: {createdSyncBranch}");
+                logger.PullCreated(targetRepositoryDisplayName, createdSyncBranch);
                 list.Add(createdSyncBranch);
             }
             catch (Exception exception)

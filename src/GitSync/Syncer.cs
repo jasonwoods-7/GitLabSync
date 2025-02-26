@@ -1,29 +1,30 @@
 using System.Diagnostics;
-using System.Globalization;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using GitSync.GitProvider;
+using Microsoft.Extensions.Logging;
 using ICredentials = GitSync.GitProvider.ICredentials;
 
 namespace GitSync;
 
+[SuppressMessage("ReSharper", "AsyncApostle.AsyncMethodNamingHighlighting")]
+[SuppressMessage("ReSharper", "AsyncApostle.ConfigureAwaitHighlighting")]
 sealed class Syncer :
     IDisposable
 {
     readonly IGitProviderGateway gateway;
-    readonly Action<string> log;
+    readonly ILogger logger;
     readonly ICredentials credentials;
 
     public Syncer(
         ICredentials credentials,
-        IWebProxy? proxy = null,
-        Action<string>? log = null)
+        ILogger logger,
+        IWebProxy? proxy = null)
     {
-        this.log = log ?? nullLogger;
+        this.logger = logger;
         this.credentials = credentials;
-        this.gateway = this.credentials.CreateGateway(proxy, this.log);
+        this.gateway = this.credentials.CreateGateway(proxy, this.logger);
     }
-
-    static readonly Action<string> nullLogger = _ => { };
 
     internal async Task<Mapper> Diff(Mapper input)
     {
@@ -34,13 +35,13 @@ sealed class Syncer :
         {
             var source = kvp.Key;
 
-            this.log($"Diff - Analyze {source.Type} source '{source.Url}'.");
+            this.logger.AnalyzeSource(source.Type, source.Url);
 
             var richSource = await this.EnrichWithShas(source, true);
 
             foreach (var destination in kvp.Value)
             {
-                this.log($"Diff - Analyze {source.Type} target '{destination.Url}'.");
+                this.logger.AnalyzeTarget(destination.Type, destination.Url);
 
                 var richDestination = await this.EnrichWithShas(destination, false);
 
@@ -48,13 +49,13 @@ sealed class Syncer :
                 if (sourceSha == richDestination.Sha &&
                     richSource.Mode == richDestination.Mode)
                 {
-                    this.log($"Diff - No sync required. Matching sha ({sourceSha[..7]}) between target '{destination.Url}' and source '{source.Url}.");
+                    this.logger.NoSyncRequired(sourceSha[..7], destination.Url, source.Url);
 
                     continue;
                 }
 
-                this.log(string.Format(CultureInfo.CurrentCulture, "Diff - {4} required. Non-matching sha ({0} vs {1}) between target '{2}' and source '{3}.",
-                    sourceSha[..7], richDestination.Sha?[..7] ?? "NULL", destination.Url, source.Url, richDestination.Sha == null ? "Creation" : "Updation"));
+                this.logger.SyncRequired(richDestination.Sha == null ? "Creation" : "Update",
+                    sourceSha[..7], richDestination.Sha?[..7] ?? "NULL", destination.Url, source.Url);
 
                 outMapper.Add(richSource, richDestination);
             }
@@ -75,7 +76,7 @@ sealed class Syncer :
             var hasOpenPullRequests = await this.gateway.HasOpenPullRequests(targetRepository.Owner, targetRepository.Repository, pullRequestTitle);
             if (hasOpenPullRequests)
             {
-                this.log("Cannot create pull request, there is an existing open pull request, close or merge that first");
+                this.logger.CannotCreatePullRequest();
                 return false;
             }
         }
@@ -138,7 +139,7 @@ sealed class Syncer :
         }
         else
         {
-            this.log("User is not a collaborator, need to create a fork");
+            this.logger.UserIsNotCollaborator();
 
             if (expectedOutput != SyncOutput.CreatePullRequest)
             {
@@ -250,7 +251,7 @@ sealed class Syncer :
         var originRemote = remotes["origin"];
         var upstreamRemote = remotes["upstream"] ?? remotes.Add("upstream", $"https://github.com/{root.Owner}/{root.Repository}");
 
-        LibGit2Sharp.Commands.Fetch(repository, "upstream", upstreamRemote.FetchRefSpecs.Select(_ => _.Specification), null, null);
+        LibGit2Sharp.Commands.Fetch(repository, "upstream", upstreamRemote.FetchRefSpecs.Select(r => r.Specification), null, null);
 
         // Step 3: create local branch
         var tempBranch = repository.Branches.Add(temporaryBranchName, "HEAD");
@@ -404,10 +405,10 @@ sealed class Syncer :
         switch (source.Type)
         {
             case TreeEntryTargetType.Blob:
-                this.log($"Sync - Determine if Blob '{shortSha}' requires to be created in '{destination.Owner}/{destination.Repository}'.");
+                this.logger.DetermineIfBlobRequiresCreation(shortSha, destination.Owner, destination.Repository);
                 return this.SyncBlob(source.Owner, source.Repository, sourceSha, destination.Owner, destination.Repository);
             case TreeEntryTargetType.Tree:
-                this.log($"Sync - Determine if Tree '{shortSha}' requires to be created in '{destination.Owner}/{destination.Repository}'.");
+                this.logger.DetermineIfTreeRequiresCreation(shortSha, destination.Owner, destination.Repository);
                 return this.SyncTree(source, destination.Owner, destination.Repository);
             default:
                 throw new NotSupportedException();
