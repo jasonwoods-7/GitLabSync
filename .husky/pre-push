@@ -1,4 +1,5 @@
 #!/bin/sh
+[ ! -f "$(dirname "$0")/_/husky.sh" ] && exit 0
 . "$(dirname "$0")/_/husky.sh"
 
 dotnet husky run --group pre-push
