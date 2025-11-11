@@ -21,7 +21,7 @@
     <PackageVersion Include="NGitLab.Mock" Version="11.0.0" />
     <PackageVersion Include="Serilog.Extensions.Hosting" Version="9.0.0" />
     <PackageVersion Include="Serilog.Sinks.XUnit" Version="3.0.19" />
-    <PackageVersion Include="System.Text.Json" Version="9.0.10" />
+    <PackageVersion Include="System.Text.Json" Version="10.0.0" />
     <PackageVersion Include="Verify.ClipboardAccept" Version="31.4.3" />
     <PackageVersion Include="Verify.Xunit" Version="31.4.3" />
     <PackageVersion Include="xunit" Version="2.9.3" />
