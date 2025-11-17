@@ -16,7 +16,7 @@ jobs:
       with:
         dotnet-version: 9.0.x
     - name: Semantic Release
-      uses: cycjimmy/semantic-release-action@v5
+      uses: cycjimmy/semantic-release-action@v6
       id: semantic
       with:
         dry_run: true
@@ -54,7 +54,7 @@ jobs:
         include-hidden-files: true
         retention-days: 5
     - name: Semantic Release Tag
-      uses: cycjimmy/semantic-release-action@v5
+      uses: cycjimmy/semantic-release-action@v6
       with:
         extends: |
           @semantic-release/commit-analyzer
