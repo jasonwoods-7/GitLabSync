@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Packages.props" />
+    <File Path="readme.md" />
+  </Folder>
+  <Project Path="src/GitSync.GitLab.Tool/GitSync.GitLab.Tool.csproj" />
+  <Project Path="src/GitSync.GitLab/GitSync.GitLab.csproj" />
+  <Project Path="src/GitSync/GitSync.csproj" />
+  <Project Path="test/unit/GitSync.GitLab.Tests.csproj" />
+</Solution>
