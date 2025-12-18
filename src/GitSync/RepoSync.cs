@@ -13,7 +13,8 @@ public class RepoSync(
     List<string>? labelsToApplyOnPullRequests = null,
     SyncMode? syncMode = SyncMode.IncludeAllByDefault,
     ICredentials? defaultCredentials = null,
-    bool skipCollaboratorCheck = false)
+    bool skipCollaboratorCheck = false
+)
 {
     readonly List<ManualSyncItem> manualSyncItems = [];
     readonly List<RepositoryInfo> sources = [];
@@ -31,7 +32,12 @@ public class RepoSync(
     public void RemoveSourceItem(TreeEntryTargetType type, string path, string? target = null) =>
         this.AddOrRemoveSourceItem(false, type, path, target);
 
-    public void AddOrRemoveSourceItem(bool toBeAdded, TreeEntryTargetType type, string path, string? target)
+    public void AddOrRemoveSourceItem(
+        bool toBeAdded,
+        TreeEntryTargetType type,
+        string path,
+        string? target
+    )
     {
         if (target == null)
         {
@@ -42,7 +48,12 @@ public class RepoSync(
         this.AddOrRemoveSourceItem(toBeAdded, type, path, (_, _, _, _) => target);
     }
 
-    public void AddOrRemoveSourceItem(bool toBeAdded, TreeEntryTargetType type, string path, ResolveTarget? target)
+    public void AddOrRemoveSourceItem(
+        bool toBeAdded,
+        TreeEntryTargetType type,
+        string path,
+        ResolveTarget? target
+    )
     {
         Guard.AgainstNullAndEmpty(path);
         //todo
@@ -50,17 +61,23 @@ public class RepoSync(
 
         if (!toBeAdded && type == TreeEntryTargetType.Tree)
         {
-            throw new NotSupportedException($"Removing a '{nameof(TreeEntryTargetType.Tree)}' isn't supported.");
+            throw new NotSupportedException(
+                $"Removing a '{nameof(TreeEntryTargetType.Tree)}' isn't supported."
+            );
         }
 
         if (toBeAdded && syncMode == SyncMode.IncludeAllByDefault)
         {
-            throw new NotSupportedException($"Adding items is not supported when mode is '{syncMode}'");
+            throw new NotSupportedException(
+                $"Adding items is not supported when mode is '{syncMode}'"
+            );
         }
 
         if (!toBeAdded && syncMode == SyncMode.ExcludeAllByDefault)
         {
-            throw new NotSupportedException($"Adding items is not supported when mode is '{syncMode}'");
+            throw new NotSupportedException(
+                $"Adding items is not supported when mode is '{syncMode}'"
+            );
         }
 
         this.manualSyncItems.Add(new(path, target));
@@ -69,17 +86,27 @@ public class RepoSync(
     public void AddSourceRepository(RepositoryInfo sourceRepository) =>
         this.sources.Add(sourceRepository);
 
-    public void AddSourceRepository(string owner, string repository, string branch, ICredentials? credentials = null) =>
-        this.sources.Add(new(this.OrDefaultCredentials(credentials), owner, repository, branch));
+    public void AddSourceRepository(
+        string owner,
+        string repository,
+        string branch,
+        ICredentials? credentials = null
+    ) => this.sources.Add(new(this.OrDefaultCredentials(credentials), owner, repository, branch));
 
     public void AddTargetRepository(RepositoryInfo targetRepository) =>
         this.targets.Add(targetRepository);
 
-    public void AddTargetRepository(string owner, string repository, string branch, ICredentials? credentials = null) =>
-        this.targets.Add(new(this.OrDefaultCredentials(credentials), owner, repository, branch));
+    public void AddTargetRepository(
+        string owner,
+        string repository,
+        string branch,
+        ICredentials? credentials = null
+    ) => this.targets.Add(new(this.OrDefaultCredentials(credentials), owner, repository, branch));
 
     ICredentials OrDefaultCredentials(ICredentials? credentials) =>
-        credentials ?? defaultCredentials ?? throw new GitSyncException("defaultCredentials required");
+        credentials
+        ?? defaultCredentials
+        ?? throw new GitSyncException("defaultCredentials required");
 
     public async Task<SyncContext> CalculateSyncContext(RepositoryInfo targetRepository)
     {
@@ -100,7 +127,15 @@ public class RepoSync(
             var itemsToSync = new List<SyncItem>();
 
             using var gateway = source.Credentials.CreateGateway(null, logger);
-            foreach (var item in await GitProviderGatewayExtensions.GetRecursive(gateway, source.Owner, source.Repository, null, source.Branch))
+            foreach (
+                var item in await GitProviderGatewayExtensions.GetRecursive(
+                    gateway,
+                    source.Owner,
+                    source.Repository,
+                    null,
+                    source.Branch
+                )
+            )
             {
                 if (includedPaths.Contains(item))
                 {
@@ -112,12 +147,15 @@ public class RepoSync(
                 this.ProcessItem(item, itemsToSync, source);
             }
 
-            var targetRepositoryToSync = new RepoToSync(targetRepository.Owner, targetRepository.Repository, targetRepository.Branch);
+            var targetRepositoryToSync = new RepoToSync(
+                targetRepository.Owner,
+                targetRepository.Repository,
+                targetRepository.Branch
+            );
 
             var sourceMapper = targetRepositoryToSync.GetMapper(itemsToSync);
             var diff = await syncer.Diff(sourceMapper);
-            if (diff.ToBeAddedOrUpdatedEntries.Any() ||
-                diff.ToBeRemovedEntries.Any())
+            if (diff.ToBeAddedOrUpdatedEntries.Any() || diff.ToBeRemovedEntries.Any())
             {
                 diffs.Add(diff);
 
@@ -152,11 +190,18 @@ public class RepoSync(
             source.Repository,
             TreeEntryTargetType.Blob,
             source.Branch,
-            item);
+            item
+        );
         var localManualSyncItems = this.manualSyncItems.Where(i => item == i.Path).ToList();
         if (localManualSyncItems.Count != 0)
         {
-            itemsToSync.AddRange(localManualSyncItems.Select(m => new SyncItem(parts, syncMode == SyncMode.ExcludeAllByDefault, m.Target)));
+            itemsToSync.AddRange(
+                localManualSyncItems.Select(m => new SyncItem(
+                    parts,
+                    syncMode == SyncMode.ExcludeAllByDefault,
+                    m.Target
+                ))
+            );
 
             return;
         }
@@ -164,14 +209,20 @@ public class RepoSync(
         itemsToSync.Add(new(parts, syncMode == SyncMode.IncludeAllByDefault, null));
     }
 
-    public async Task<IReadOnlyList<UpdateResult>> Sync(string pullRequestTitle, string branchName, string commitMessage, SyncOutput syncOutput = SyncOutput.CreatePullRequest)
+    public async Task<IReadOnlyList<UpdateResult>> Sync(
+        string pullRequestTitle,
+        string branchName,
+        string commitMessage,
+        SyncOutput syncOutput = SyncOutput.CreatePullRequest
+    )
     {
         var list = new List<UpdateResult>();
         foreach (var targetRepository in this.targets)
         {
             try
             {
-                var targetRepositoryDisplayName = $"{targetRepository.Owner}/{targetRepository.Repository}";
+                var targetRepositoryDisplayName =
+                    $"{targetRepository.Owner}/{targetRepository.Repository}";
 
                 using var syncer = new Syncer(targetRepository.Credentials, logger);
                 if (!await syncer.CanSynchronize(targetRepository, syncOutput, pullRequestTitle))
@@ -187,7 +238,16 @@ public class RepoSync(
                     continue;
                 }
 
-                var sync = await syncer.Sync(syncContext.Diff, syncOutput, branchName, commitMessage, pullRequestTitle, labelsToApplyOnPullRequests, syncContext.Description, skipCollaboratorCheck);
+                var sync = await syncer.Sync(
+                    syncContext.Diff,
+                    syncOutput,
+                    branchName,
+                    commitMessage,
+                    pullRequestTitle,
+                    labelsToApplyOnPullRequests,
+                    syncContext.Description,
+                    skipCollaboratorCheck
+                );
                 if (sync.Count == 0)
                 {
                     logger.RepoInSync(targetRepositoryDisplayName);
@@ -200,7 +260,10 @@ public class RepoSync(
             }
             catch (Exception exception)
             {
-                throw new GitSyncException($"Failed to sync Repository:{targetRepository.Repository} Branch:{targetRepository.Branch}", exception);
+                throw new GitSyncException(
+                    $"Failed to sync Repository:{targetRepository.Repository} Branch:{targetRepository.Branch}",
+                    exception
+                );
             }
         }
 

@@ -12,9 +12,5 @@ public class Credentials(string hostUrl, string token) : ICredentials
         new GitLabGateway(new GitLabClient(hostUrl, token), logger);
 
     public LibGit2Sharp.Credentials CreateLibGit2SharpCredentials() =>
-        new LibGit2Sharp.UsernamePasswordCredentials
-        {
-            Username = token,
-            Password = string.Empty
-        };
+        new LibGit2Sharp.UsernamePasswordCredentials { Username = token, Password = string.Empty };
 }

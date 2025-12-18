@@ -11,7 +11,10 @@ sealed class Commit : ICommit
         this.Tree = new Tree(treeSha);
     }
 
-    public static async Task<Commit> CreateAsync(CommitInfo info, NGitLab.IRepositoryClient repositoryClient)
+    public static async Task<Commit> CreateAsync(
+        CommitInfo info,
+        NGitLab.IRepositoryClient repositoryClient
+    )
     {
         var commitSha = info.Id.ToString();
 
@@ -21,16 +24,22 @@ sealed class Commit : ICommit
                 new NewTree(""),
                 (nt, ct) =>
                 {
-                    nt.Tree.Add(ct.Mode, ct.Name, ct.Id.ToString(), ct.Type switch
-                    {
-                        ObjectType.blob => TreeType.Blob,
-                        ObjectType.tree => TreeType.Tree,
-                        ObjectType.commit => throw new NotImplementedException(),
-                        _ => throw new InvalidOperationException()
-                    });
+                    nt.Tree.Add(
+                        ct.Mode,
+                        ct.Name,
+                        ct.Id.ToString(),
+                        ct.Type switch
+                        {
+                            ObjectType.blob => TreeType.Blob,
+                            ObjectType.tree => TreeType.Tree,
+                            ObjectType.commit => throw new NotImplementedException(),
+                            _ => throw new InvalidOperationException(),
+                        }
+                    );
 
                     return nt;
-                });
+                }
+            );
 
         var treeSha = await GitHashHelper.GetTreeHash(tree);
 

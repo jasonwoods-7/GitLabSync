@@ -2,7 +2,15 @@ namespace GitSync;
 
 public class Parts : IParts
 {
-    public Parts(string owner, string repository, TreeEntryTargetType type, string branch, string? path, string? sha = null, string? mode = null)
+    public Parts(
+        string owner,
+        string repository,
+        TreeEntryTargetType type,
+        string branch,
+        string? path,
+        string? sha = null,
+        string? mode = null
+    )
     {
         this.Owner = owner;
         this.Repository = repository;
@@ -12,7 +20,14 @@ public class Parts : IParts
         this.Sha = sha;
         this.Mode = mode;
 
-        this.Url = string.Join('/', "https://github.com", owner, repository, type.ToString().ToLowerInvariant(), branch);
+        this.Url = string.Join(
+            '/',
+            "https://github.com",
+            owner,
+            repository,
+            type.ToString().ToLowerInvariant(),
+            branch
+        );
 
         if (path == null)
         {
@@ -51,11 +66,18 @@ public class Parts : IParts
     public string? Mode { get; }
 
     public Parts Combine(TreeEntryTargetType type, string name, string sha, string mode) =>
-        new(this.Owner, this.Repository, type, this.Branch, this.Path == null ? name : this.Path + "/" + name, sha, mode);
+        new(
+            this.Owner,
+            this.Repository,
+            type,
+            this.Branch,
+            this.Path == null ? name : this.Path + "/" + name,
+            sha,
+            mode
+        );
 
     public class NullParts : IParts
     {
-        internal NullParts()
-        { }
+        internal NullParts() { }
     }
 }

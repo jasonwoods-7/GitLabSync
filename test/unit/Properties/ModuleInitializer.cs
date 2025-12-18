@@ -5,6 +5,5 @@ namespace GitSync.GitLab.Tests.Properties;
 static class ModuleInitializer
 {
     [ModuleInitializer]
-    public static void Initialize() =>
-        ClipboardAccept.Enable();
+    public static void Initialize() => ClipboardAccept.Enable();
 }

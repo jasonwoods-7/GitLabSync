@@ -1,7 +1,6 @@
 namespace GitSync;
 
-sealed class PartsComparer :
-    IEqualityComparer<Parts>
+sealed class PartsComparer : IEqualityComparer<Parts>
 {
     public bool Equals(Parts? x, Parts? y)
     {

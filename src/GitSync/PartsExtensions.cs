@@ -2,7 +2,6 @@ namespace GitSync;
 
 public static class PartsExtensions
 {
-
     public static Parts Parent(this Parts parts)
     {
         if (parts.Path == null)
@@ -14,7 +13,13 @@ public static class PartsExtensions
 
         var parentPath = indexOf == -1 ? null : parts.Path[..indexOf];
 
-        return new(parts.Owner, parts.Repository, TreeEntryTargetType.Tree, parts.Branch, parentPath);
+        return new(
+            parts.Owner,
+            parts.Repository,
+            TreeEntryTargetType.Tree,
+            parts.Branch,
+            parentPath
+        );
     }
 
     public static Parts Root(this Parts parts) =>

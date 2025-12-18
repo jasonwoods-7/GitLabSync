@@ -8,6 +8,5 @@ sealed class Template
 
     public string branch { get; set; } = "main";
 
-    public override string ToString() =>
-        $"{this.name} ({this.url})";
+    public override string ToString() => $"{this.name} ({this.url})";
 }

@@ -4,7 +4,9 @@ namespace GitSync;
 
 public abstract class MapperBase
 {
-    readonly Dictionary<Parts, ICollection<Parts>> toBeAddedOrUpdatedEntries = new(new PartsComparer());
+    readonly Dictionary<Parts, ICollection<Parts>> toBeAddedOrUpdatedEntries = new(
+        new PartsComparer()
+    );
     readonly List<Parts> toBeRemovedEntries = [];
 
     protected void AddOrRemoveInternal(IParts from, Parts to)
@@ -14,12 +16,16 @@ public abstract class MapperBase
             case Parts toAddOrUpdate:
                 if (toAddOrUpdate.Type != to.Type)
                 {
-                    throw new ArgumentException($"Cannot map [{toAddOrUpdate.Type}: {toAddOrUpdate.Url}] to [{to.Type}: {to.Url}]. ");
+                    throw new ArgumentException(
+                        $"Cannot map [{toAddOrUpdate.Type}: {toAddOrUpdate.Url}] to [{to.Type}: {to.Url}]. "
+                    );
                 }
 
                 if (this.toBeRemovedEntries.Contains(to))
                 {
-                    throw new InvalidOperationException($"Cannot add this as the target path '{to.Path}' in branch'{to.Branch}' of '{to.Owner}/{to.Repository}' as it's already scheduled for removal.");
+                    throw new InvalidOperationException(
+                        $"Cannot add this as the target path '{to.Path}' in branch'{to.Branch}' of '{to.Owner}/{to.Repository}' as it's already scheduled for removal."
+                    );
                 }
 
                 if (!this.toBeAddedOrUpdatedEntries.TryGetValue(toAddOrUpdate, out var parts))
@@ -35,13 +41,16 @@ public abstract class MapperBase
             case Parts.NullParts:
                 if (to.Type == TreeEntryTargetType.Tree)
                 {
-                    throw new NotSupportedException($"Removing a '{nameof(TreeEntryTargetType.Tree)}' isn't supported.");
+                    throw new NotSupportedException(
+                        $"Removing a '{nameof(TreeEntryTargetType.Tree)}' isn't supported."
+                    );
                 }
 
                 if (this.toBeAddedOrUpdatedEntries.Values.SelectMany(_ => _).Contains(to))
                 {
                     throw new InvalidOperationException(
-                        $"Cannot remove this as the target path '{to.Path}' in branch '{to.Branch}' of '{to.Owner}/{to.Repository}' as it's already scheduled for addition.");
+                        $"Cannot remove this as the target path '{to.Path}' in branch '{to.Branch}' of '{to.Owner}/{to.Repository}' as it's already scheduled for addition."
+                    );
                 }
 
                 if (this.toBeRemovedEntries.Contains(to))
@@ -54,15 +63,20 @@ public abstract class MapperBase
                 break;
 
             default:
-                throw new InvalidOperationException($"Unsupported 'from' type ({from.GetType().FullName}).");
+                throw new InvalidOperationException(
+                    $"Unsupported 'from' type ({from.GetType().FullName})."
+                );
         }
     }
 
     public IEnumerable<KeyValuePair<Parts, IEnumerable<Parts>>> ToBeAddedOrUpdatedEntries =>
-        this.toBeAddedOrUpdatedEntries
-            .Select(e => new KeyValuePair<Parts, IEnumerable<Parts>>(e.Key, e.Value));
+        this.toBeAddedOrUpdatedEntries.Select(e => new KeyValuePair<Parts, IEnumerable<Parts>>(
+            e.Key,
+            e.Value
+        ));
 
-    public IEnumerable<Parts> ToBeRemovedEntries => new ReadOnlyCollection<Parts>(this.toBeRemovedEntries);
+    public IEnumerable<Parts> ToBeRemovedEntries =>
+        new ReadOnlyCollection<Parts>(this.toBeRemovedEntries);
 
     public IDictionary<string, IList<Tuple<Parts, IParts>>> Transpose()
     {

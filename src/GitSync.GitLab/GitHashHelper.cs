@@ -24,10 +24,7 @@ static class GitHashHelper
 
     public static async Task<string> GetTreeHash(INewTree newTree)
     {
-        var orderedItems = newTree
-            .Tree
-            .OrderBy(t => t.Name)
-            .ToList();
+        var orderedItems = newTree.Tree.OrderBy(t => t.Name).ToList();
 
         using var treeStream = new MemoryStream();
 
@@ -49,9 +46,15 @@ static class GitHashHelper
         return await ComputeHash(stream, treeStream);
     }
 
-    public static async Task<string> GetCommitHash(string treeSha, string parentCommitSha, string commitMessage, Session user)
+    public static async Task<string> GetCommitHash(
+        string treeSha,
+        string parentCommitSha,
+        string commitMessage,
+        Session user
+    )
     {
-        var usernameAndDate = $"{user.Username} <{user.Email}> {DateTimeOffset.UtcNow.ToUnixTimeSeconds()} +0000";
+        var usernameAndDate =
+            $"{user.Username} <{user.Email}> {DateTimeOffset.UtcNow.ToUnixTimeSeconds()} +0000";
 
         var commitData = new MemoryStream();
         await commitData.WriteAsync($"tree {treeSha}\n");
@@ -89,16 +92,17 @@ static class GitHashHelper
                 int read;
                 while ((read = await stream.ReadAsync(buffer.AsMemory(0, length - offset))) > 0)
                 {
-                    offset = (offset + sha1.TransformBlock(buffer, 0, read, buffer, offset)) % length;
+                    offset =
+                        (offset + sha1.TransformBlock(buffer, 0, read, buffer, offset)) % length;
                 }
             }
 
             sha1.TransformFinalBlock(buffer, 0, 0);
-            var hash = sha1.Hash!
-                .Aggregate(
-                    new StringBuilder(),
-                    (s, b) => s.Append(b.ToString(GitLabHashFormat, CultureInfo.InvariantCulture)),
-                    s => s.ToString());
+            var hash = sha1.Hash!.Aggregate(
+                new StringBuilder(),
+                (s, b) => s.Append(b.ToString(GitLabHashFormat, CultureInfo.InvariantCulture)),
+                s => s.ToString()
+            );
 
             return hash;
         }
@@ -122,7 +126,11 @@ static class GitHashHelper
 
         for (var i = 0; i < 40; i += 2)
         {
-            buffer[i >> 1] = byte.Parse(sha.AsSpan(i, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            buffer[i >> 1] = byte.Parse(
+                sha.AsSpan(i, 2),
+                NumberStyles.HexNumber,
+                CultureInfo.InvariantCulture
+            );
         }
 
         return buffer;

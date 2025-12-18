@@ -12,11 +12,12 @@ sealed class TreeItem(NGitLab.Models.Tree tree) : ITreeItem
     public string Name { get; } = tree.Name;
     public string Sha { get; } = tree.Id.ToString();
 
-    public TreeType Type { get; } = tree.Type switch
-    {
-        ObjectType.blob => TreeType.Blob,
-        ObjectType.tree => TreeType.Tree,
-        ObjectType.commit => throw new NotImplementedException(),
-        _ => throw new NotImplementedException()
-    };
+    public TreeType Type { get; } =
+        tree.Type switch
+        {
+            ObjectType.blob => TreeType.Blob,
+            ObjectType.tree => TreeType.Tree,
+            ObjectType.commit => throw new NotImplementedException(),
+            _ => throw new NotImplementedException(),
+        };
 }

@@ -2,8 +2,7 @@ namespace GitSync;
 
 sealed class RepoToSync(string owner, string repo, string targetBranch)
 {
-    public override string ToString() =>
-        $"{this.Owner}/{this.Repo}/{this.TargetBranch}";
+    public override string ToString() => $"{this.Owner}/{this.Repo}/{this.TargetBranch}";
 
     public string Owner { get; } = owner;
     public string Repo { get; } = repo;
@@ -15,7 +14,13 @@ sealed class RepoToSync(string owner, string repo, string targetBranch)
 
         foreach (var syncItem in syncItems)
         {
-            var toPart = new Parts(this.Owner, this.Repo, syncItem.Parts.Type, this.TargetBranch, ApplyTargetPathTemplate(syncItem));
+            var toPart = new Parts(
+                this.Owner,
+                this.Repo,
+                syncItem.Parts.Type,
+                this.TargetBranch,
+                ApplyTargetPathTemplate(syncItem)
+            );
 
             if (syncItem.ToBeAdded)
             {
