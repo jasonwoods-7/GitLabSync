@@ -35,10 +35,11 @@ public class GitLabGatewayTests : IDisposable
     public async Task GetCurrentUser()
     {
         // Arrange
-        using var server = new GitLabConfig()
-            .WithUser("user", isDefault: true)
-            .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var server = new GitLabConfig().WithUser("user", isDefault: true).BuildServer();
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         // Act
         var user = await gateway.GetCurrentUser();
@@ -59,9 +60,15 @@ public class GitLabGatewayTests : IDisposable
     {
         // Arrange
         using var server = new GitLabConfig()
-            .WithProjectOfFullPath("group/project", configure: p => p.WithUserPermission("user", accessLevel))
+            .WithProjectOfFullPath(
+                "group/project",
+                configure: p => p.WithUserPermission("user", accessLevel)
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         // Act
         var isCollaborator = await gateway.IsCollaborator("group", "project");
@@ -85,7 +92,10 @@ public class GitLabGatewayTests : IDisposable
             .WithGroupOfFullPath("group", configure: g => g.WithUserPermission("user", accessLevel))
             .WithProjectOfFullPath("group/project")
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         // Act
         var isCollaborator = await gateway.IsCollaborator("group", "project");
@@ -102,7 +112,10 @@ public class GitLabGatewayTests : IDisposable
             .WithUser("user")
             .WithProjectOfFullPath("group/project")
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         // Act
         var isCollaborator = await gateway.IsCollaborator("group", "project");
@@ -119,7 +132,10 @@ public class GitLabGatewayTests : IDisposable
             .WithUser("user")
             .WithProjectOfFullPath("group/project")
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         // Act
         var fork = await gateway.Fork("group", "project");
@@ -134,15 +150,28 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
+            .WithProjectOfFullPath(
+                "group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c => c.WithFile("readme.md", "Hello, World!")
+                    )
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         using var targetStream = new MemoryStream();
 
         // Act
-        await gateway.DownloadBlob(new("group", "project", TreeEntryTargetType.Blob, "main", "readme.md", HelloWorldSha), targetStream);
+        await gateway.DownloadBlob(
+            new("group", "project", TreeEntryTargetType.Blob, "main", "readme.md", HelloWorldSha),
+            targetStream
+        );
 
         // Assert
         targetStream.Should().NotHavePosition(0L);
@@ -157,15 +186,21 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", configure: p =>
-            {
-                if (title is not null)
+            .WithProjectOfFullPath(
+                "group/project",
+                configure: p =>
                 {
-                    p.WithMergeRequest(title: title);
+                    if (title is not null)
+                    {
+                        p.WithMergeRequest(title: title);
+                    }
                 }
-            })
+            )
             .BuildServer();
-        var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         // Act
         var hasOpenPullRequests = await gateway.HasOpenPullRequests("group", "project", "title");
@@ -180,15 +215,31 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", id: 1, addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!"))
-                .WithCommit("Second commit", configure: c => c.WithFile("subFolder/hello.txt", "Hello, World!")))
+            .WithProjectOfFullPath(
+                "group/project",
+                id: 1,
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                            "Initial commit",
+                            configure: c => c.WithFile("readme.md", "Hello, World!")
+                        )
+                        .WithCommit(
+                            "Second commit",
+                            configure: c => c.WithFile("subFolder/hello.txt", "Hello, World!")
+                        )
+            )
             .BuildServer();
         var client = server.CreateClient();
-        using var gateway = new GitLabGateway(client, this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            client,
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         // Act
-        var commit = await gateway.RootCommitFrom(new("group", "project", TreeEntryTargetType.Tree, "main", null));
+        var commit = await gateway.RootCommitFrom(
+            new("group", "project", TreeEntryTargetType.Tree, "main", null)
+        );
 
         // Assert
         commit.Should().NotBeNull();
@@ -200,15 +251,28 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c
-                    .WithFile("readme.md", "my readme")
-                    .WithFile("subFolder/hello.txt", "Hello, World!")))
+            .WithProjectOfFullPath(
+                "group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c =>
+                            c.WithFile("readme.md", "my readme")
+                                .WithFile("subFolder/hello.txt", "Hello, World!")
+                    )
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         // Act
-        var tree = await gateway.TreeFrom(new("group", "project", TreeEntryTargetType.Tree, "main", null), false);
+        var tree = await gateway.TreeFrom(
+            new("group", "project", TreeEntryTargetType.Tree, "main", null),
+            false
+        );
 
         // Assert
         await Verify(tree!.Item2);
@@ -220,15 +284,28 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c
-                    .WithFile("readme.md", "my readme")
-                    .WithFile("subFolder/hello.txt", "Hello, World!")))
+            .WithProjectOfFullPath(
+                "group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c =>
+                            c.WithFile("readme.md", "my readme")
+                                .WithFile("subFolder/hello.txt", "Hello, World!")
+                    )
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         // Act
-        var tree = await gateway.TreeFrom(new("group", "project", TreeEntryTargetType.Tree, "main", "subFolder"), false);
+        var tree = await gateway.TreeFrom(
+            new("group", "project", TreeEntryTargetType.Tree, "main", "subFolder"),
+            false
+        );
 
         // Assert
         await Verify(tree!.Item2);
@@ -240,13 +317,26 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
+            .WithProjectOfFullPath(
+                "group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c => c.WithFile("readme.md", "Hello, World!")
+                    )
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         // Act
-        var tree = await gateway.TreeFrom(new("group", "project", TreeEntryTargetType.Tree, "main", "subFolder"), false);
+        var tree = await gateway.TreeFrom(
+            new("group", "project", TreeEntryTargetType.Tree, "main", "subFolder"),
+            false
+        );
 
         // Assert
         tree.Should().NotBeNull();
@@ -259,13 +349,26 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
+            .WithProjectOfFullPath(
+                "group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c => c.WithFile("readme.md", "Hello, World!")
+                    )
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         // Act
-        var tree = await gateway.TreeFrom(new("group", "project", TreeEntryTargetType.Tree, "main", "subFolder"), true);
+        var tree = await gateway.TreeFrom(
+            new("group", "project", TreeEntryTargetType.Tree, "main", "subFolder"),
+            true
+        );
 
         // Assert
         tree.Should().NotBeNull();
@@ -278,13 +381,26 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
+            .WithProjectOfFullPath(
+                "group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c => c.WithFile("readme.md", "Hello, World!")
+                    )
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         // Act
-        var blob = await gateway.BlobFrom(new("group", "project", TreeEntryTargetType.Blob, "main", "readme.md"), false);
+        var blob = await gateway.BlobFrom(
+            new("group", "project", TreeEntryTargetType.Blob, "main", "readme.md"),
+            false
+        );
 
         // Assert
         await Verify(blob!.Item2);
@@ -296,15 +412,28 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c
-                    .WithFile("readme.md", "Hello, World!")
-                    .WithFile("subFolder/hello.txt", "Hello, World!")))
+            .WithProjectOfFullPath(
+                "group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c =>
+                            c.WithFile("readme.md", "Hello, World!")
+                                .WithFile("subFolder/hello.txt", "Hello, World!")
+                    )
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         // Act
-        var blob = await gateway.BlobFrom(new("group", "project", TreeEntryTargetType.Blob, "main", "subFolder/hello.txt"), false);
+        var blob = await gateway.BlobFrom(
+            new("group", "project", TreeEntryTargetType.Blob, "main", "subFolder/hello.txt"),
+            false
+        );
 
         // Assert
         await Verify(blob!.Item2);
@@ -316,13 +445,26 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
+            .WithProjectOfFullPath(
+                "group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c => c.WithFile("readme.md", "Hello, World!")
+                    )
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         // Act
-        var blob = await gateway.BlobFrom(new("group", "project", TreeEntryTargetType.Blob, "main", "hello.txt"), false);
+        var blob = await gateway.BlobFrom(
+            new("group", "project", TreeEntryTargetType.Blob, "main", "hello.txt"),
+            false
+        );
 
         // Assert
         blob.Should().BeNull();
@@ -334,13 +476,27 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
+            .WithProjectOfFullPath(
+                "group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c => c.WithFile("readme.md", "Hello, World!")
+                    )
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         // Act
-        var handler = () => gateway.BlobFrom(new("group", "project", TreeEntryTargetType.Blob, "main", "hello.txt"), true);
+        var handler = () =>
+            gateway.BlobFrom(
+                new("group", "project", TreeEntryTargetType.Blob, "main", "hello.txt"),
+                true
+            );
 
         // Assert
         await handler.Should().ThrowAsync<Exception>();
@@ -352,13 +508,30 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
+            .WithProjectOfFullPath(
+                "group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c => c.WithFile("readme.md", "Hello, World!")
+                    )
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         // Act
-        var commit = await gateway.CreateCommit("treeSha", "group", "project", "parentSha", "branch", "chore(sync): gitlab sync");
+        var commit = await gateway.CreateCommit(
+            "treeSha",
+            "group",
+            "project",
+            "parentSha",
+            "branch",
+            "chore(sync): gitlab sync"
+        );
 
         // Assert
         commit.Should().NotBeNull();
@@ -372,7 +545,10 @@ public class GitLabGatewayTests : IDisposable
             .WithUser("user", isDefault: true)
             .WithProjectOfFullPath("group/project")
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         var newTree = gateway.CreateNewTree(null);
 
@@ -389,12 +565,20 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", configure: project => project
-                .WithCommit("Initial commit", configure: commit => commit
-                    .WithFile("directory/.gitkeep")))
+            .WithProjectOfFullPath(
+                "group/project",
+                configure: project =>
+                    project.WithCommit(
+                        "Initial commit",
+                        configure: commit => commit.WithFile("directory/.gitkeep")
+                    )
+            )
             .BuildServer();
         var client = server.CreateClient();
-        using var gateway = new GitLabGateway(client, this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            client,
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         var repository = client.GetRepository(1);
         var gitKeep = repository.GetTreeAsync(new() { Path = "directory" }).Single();
@@ -416,10 +600,20 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
+            .WithProjectOfFullPath(
+                "group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c => c.WithFile("readme.md", "Hello, World!")
+                    )
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         await gateway.FetchBlob("group", "project", HelloWorldSha);
 
@@ -436,17 +630,34 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
+            .WithProjectOfFullPath(
+                "group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c => c.WithFile("readme.md", "Hello, World!")
+                    )
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         var newTree = gateway.CreateNewTree(null);
         newTree.Tree.Add("100644", "hello.txt", HelloWorldSha, TreeType.Blob);
         await gateway.FetchBlob("group", "project", HelloWorldSha);
 
         var treeId = await gateway.CreateTree(newTree, "group", "project");
-        var commitId = await gateway.CreateCommit(treeId, "group", "project", "main", "main", "chore(sync): gitlab sync");
+        var commitId = await gateway.CreateCommit(
+            treeId,
+            "group",
+            "project",
+            "main",
+            "main",
+            "chore(sync): gitlab sync"
+        );
 
         // Act
         var branch = await gateway.CreateBranch("group", "project", "branch", commitId);
@@ -461,21 +672,48 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
+            .WithProjectOfFullPath(
+                "group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c => c.WithFile("readme.md", "Hello, World!")
+                    )
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         var newTree = gateway.CreateNewTree(null);
         var subTree = gateway.CreateNewTree("bin");
         var emptyTree = gateway.CreateNewTree("empty");
         subTree.Tree.Add("100755", "hello.sh", HelloWorldSha, TreeType.Blob);
-        newTree.Tree.Add("040000", "bin", await gateway.CreateTree(subTree, "group", "project"), TreeType.Tree);
-        newTree.Tree.Add("040000", "empty", await gateway.CreateTree(emptyTree, "group", "project"), TreeType.Tree);
+        newTree.Tree.Add(
+            "040000",
+            "bin",
+            await gateway.CreateTree(subTree, "group", "project"),
+            TreeType.Tree
+        );
+        newTree.Tree.Add(
+            "040000",
+            "empty",
+            await gateway.CreateTree(emptyTree, "group", "project"),
+            TreeType.Tree
+        );
         await gateway.FetchBlob("group", "project", HelloWorldSha);
 
         var treeId = await gateway.CreateTree(newTree, "group", "project");
-        var commitId = await gateway.CreateCommit(treeId, "group", "project", "main", "main", "chore(sync): gitlab sync");
+        var commitId = await gateway.CreateCommit(
+            treeId,
+            "group",
+            "project",
+            "main",
+            "main",
+            "chore(sync): gitlab sync"
+        );
 
         // Act
         var branch = await gateway.CreateBranch("group", "project", "branch", commitId);
@@ -490,19 +728,43 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, world!")))
-            .WithProjectOfFullPath("group/project2", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
+            .WithProjectOfFullPath(
+                "group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c => c.WithFile("readme.md", "Hello, world!")
+                    )
+            )
+            .WithProjectOfFullPath(
+                "group/project2",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c => c.WithFile("readme.md", "Hello, World!")
+                    )
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         var newTree = gateway.CreateNewTree(null);
         newTree.Tree.Add("100644", "readme.md", HelloWorldSha, TreeType.Blob);
         await gateway.FetchBlob("group", "project2", HelloWorldSha);
 
         var treeId = await gateway.CreateTree(newTree, "group", "project");
-        var commitId = await gateway.CreateCommit(treeId, "group", "project", "main", "main", "chore(sync): gitlab sync");
+        var commitId = await gateway.CreateCommit(
+            treeId,
+            "group",
+            "project",
+            "main",
+            "main",
+            "chore(sync): gitlab sync"
+        );
 
         // Act
         var branch = await gateway.CreateBranch("group", "project", "branch", commitId);
@@ -517,15 +779,38 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, world!"))
-                .WithCommit("Add script", configure: c => c.WithFile("bin/hello.sh", "Hello, World!")))
-            .WithProjectOfFullPath("group/project2", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Add script", configure: c => c.WithFile("bin/hello.sh", "echo 'Hello, World!'")))
+            .WithProjectOfFullPath(
+                "group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                            "Initial commit",
+                            configure: c => c.WithFile("readme.md", "Hello, world!")
+                        )
+                        .WithCommit(
+                            "Add script",
+                            configure: c => c.WithFile("bin/hello.sh", "Hello, World!")
+                        )
+            )
+            .WithProjectOfFullPath(
+                "group/project2",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Add script",
+                        configure: c => c.WithFile("bin/hello.sh", "echo 'Hello, World!'")
+                    )
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
-        var sourceTree = await gateway.TreeFrom(new("group", "project2", TreeEntryTargetType.Tree, "main", "bin"), false);
+        var sourceTree = await gateway.TreeFrom(
+            new("group", "project2", TreeEntryTargetType.Tree, "main", "bin"),
+            false
+        );
         var scriptSha = sourceTree!.Item2.Tree.Single().Sha;
         await gateway.FetchBlob("group", "project2", scriptSha);
 
@@ -533,7 +818,14 @@ public class GitLabGatewayTests : IDisposable
         newTree.Tree.Add("100755", "hello.sh", scriptSha, TreeType.Blob);
 
         var treeId = await gateway.CreateTree(newTree, "group", "project");
-        var commitId = await gateway.CreateCommit(treeId, "group", "project", "main", "main", "chore(sync): gitlab sync");
+        var commitId = await gateway.CreateCommit(
+            treeId,
+            "group",
+            "project",
+            "main",
+            "main",
+            "chore(sync): gitlab sync"
+        );
 
         // Act
         var branch = await gateway.CreateBranch("group", "project", "branch", commitId);
@@ -548,22 +840,47 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("owner/group/project", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
+            .WithProjectOfFullPath(
+                "owner/group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c => c.WithFile("readme.md", "Hello, World!")
+                    )
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         var newTree = gateway.CreateNewTree(null);
         newTree.Tree.Add("100644", "hello.txt", HelloWorldSha, TreeType.Blob);
         await gateway.FetchBlob("owner", "group/project", HelloWorldSha);
 
         var treeId = await gateway.CreateTree(newTree, "owner", "group/project");
-        var commitId = await gateway.CreateCommit(treeId, "owner", "group/project", "main", "main", "chore(sync): gitlab sync");
+        var commitId = await gateway.CreateCommit(
+            treeId,
+            "owner",
+            "group/project",
+            "main",
+            "main",
+            "chore(sync): gitlab sync"
+        );
 
         _ = await gateway.CreateBranch("owner", "group/project", "branch", commitId);
 
         // Act
-        var id = await gateway.CreatePullRequest("owner", "group/project", "branch", "main", false, "GitLabSync", null);
+        var id = await gateway.CreatePullRequest(
+            "owner",
+            "group/project",
+            "branch",
+            "main",
+            false,
+            "GitLabSync",
+            null
+        );
 
         // Assert
         id.Should().NotBe(0);
@@ -575,21 +892,46 @@ public class GitLabGatewayTests : IDisposable
         // Arrange
         using var server = new GitLabConfig()
             .WithUser("user", isDefault: true)
-            .WithProjectOfFullPath("group/project", addDefaultUserAsMaintainer: true, configure: p => p
-                .WithCommit("Initial commit", configure: c => c.WithFile("readme.md", "Hello, World!")))
+            .WithProjectOfFullPath(
+                "group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c => c.WithFile("readme.md", "Hello, World!")
+                    )
+            )
             .BuildServer();
-        using var gateway = new GitLabGateway(server.CreateClient(), this.loggerFactory.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            server.CreateClient(),
+            this.loggerFactory.CreateLogger<GitLabGateway>()
+        );
 
         var newTree = gateway.CreateNewTree(null);
         newTree.Tree.Add("100644", "hello.txt", HelloWorldSha, TreeType.Blob);
         await gateway.FetchBlob("group", "project", HelloWorldSha);
 
         var treeId = await gateway.CreateTree(newTree, "group", "project");
-        var commitId = await gateway.CreateCommit(treeId, "group", "project", "main", "main", "chore(sync): gitlab sync");
+        var commitId = await gateway.CreateCommit(
+            treeId,
+            "group",
+            "project",
+            "main",
+            "main",
+            "chore(sync): gitlab sync"
+        );
 
         _ = await gateway.CreateBranch("group", "project", "branch", commitId);
 
-        var id = await gateway.CreatePullRequest("group", "project", "branch", "main", false, "GitLabSync", null);
+        var id = await gateway.CreatePullRequest(
+            "group",
+            "project",
+            "branch",
+            "main",
+            false,
+            "GitLabSync",
+            null
+        );
 
         // Act
         var labels = await gateway.ApplyLabels("group", "project", id, ["label"]);

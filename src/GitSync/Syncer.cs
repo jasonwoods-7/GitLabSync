@@ -9,17 +9,13 @@ namespace GitSync;
 
 [SuppressMessage("ReSharper", "AsyncApostle.AsyncMethodNamingHighlighting")]
 [SuppressMessage("ReSharper", "AsyncApostle.ConfigureAwaitHighlighting")]
-sealed class Syncer :
-    IDisposable
+sealed class Syncer : IDisposable
 {
     readonly IGitProviderGateway gateway;
     readonly ILogger logger;
     readonly ICredentials credentials;
 
-    public Syncer(
-        ICredentials credentials,
-        ILogger logger,
-        IWebProxy? proxy = null)
+    public Syncer(ICredentials credentials, ILogger logger, IWebProxy? proxy = null)
     {
         this.logger = logger;
         this.credentials = credentials;
@@ -46,16 +42,20 @@ sealed class Syncer :
                 var richDestination = await this.EnrichWithShas(destination, false);
 
                 var sourceSha = richSource.Sha!;
-                if (sourceSha == richDestination.Sha &&
-                    richSource.Mode == richDestination.Mode)
+                if (sourceSha == richDestination.Sha && richSource.Mode == richDestination.Mode)
                 {
                     this.logger.NoSyncRequired(sourceSha[..7], destination.Url, source.Url);
 
                     continue;
                 }
 
-                this.logger.SyncRequired(richDestination.Sha == null ? "Creation" : "Update",
-                    sourceSha[..7], richDestination.Sha?[..7] ?? "NULL", destination.Url, source.Url);
+                this.logger.SyncRequired(
+                    richDestination.Sha == null ? "Creation" : "Update",
+                    sourceSha[..7],
+                    richDestination.Sha?[..7] ?? "NULL",
+                    destination.Url,
+                    source.Url
+                );
 
                 outMapper.Add(richSource, richDestination);
             }
@@ -69,11 +69,19 @@ sealed class Syncer :
         return outMapper;
     }
 
-    internal async Task<bool> CanSynchronize(RepositoryInfo targetRepository, SyncOutput expectedOutput, string pullRequestTitle)
+    internal async Task<bool> CanSynchronize(
+        RepositoryInfo targetRepository,
+        SyncOutput expectedOutput,
+        string pullRequestTitle
+    )
     {
         if (expectedOutput is SyncOutput.CreatePullRequest or SyncOutput.MergePullRequest)
         {
-            var hasOpenPullRequests = await this.gateway.HasOpenPullRequests(targetRepository.Owner, targetRepository.Repository, pullRequestTitle);
+            var hasOpenPullRequests = await this.gateway.HasOpenPullRequests(
+                targetRepository.Owner,
+                targetRepository.Repository,
+                pullRequestTitle
+            );
             if (hasOpenPullRequests)
             {
                 this.logger.CannotCreatePullRequest();
@@ -92,16 +100,18 @@ sealed class Syncer :
         string pullRequestTitle,
         IEnumerable<string>? labelsToApplyOnPullRequests = null,
         string? description = null,
-        bool skipCollaboratorCheck = false)
+        bool skipCollaboratorCheck = false
+    )
     {
         Guard.AgainstNull(diff);
         Guard.AgainstNull(expectedOutput);
         var labels = labelsToApplyOnPullRequests?.ToArray() ?? [];
 
-        if (labels.Length != 0 &&
-            expectedOutput != SyncOutput.CreatePullRequest)
+        if (labels.Length != 0 && expectedOutput != SyncOutput.CreatePullRequest)
         {
-            throw new GitSyncException($"Labels can only be applied in '{SyncOutput.CreatePullRequest}' mode.");
+            throw new GitSyncException(
+                $"Labels can only be applied in '{SyncOutput.CreatePullRequest}' mode."
+            );
         }
 
         var t = diff.Transpose();
@@ -110,7 +120,16 @@ sealed class Syncer :
 
         foreach (var updatesPerOwnerRepositoryBranch in t.Values)
         {
-            var updates = await this.ProcessUpdates(expectedOutput, updatesPerOwnerRepositoryBranch, labels, description, skipCollaboratorCheck, branchName, pullRequestTitle, commitMessage);
+            var updates = await this.ProcessUpdates(
+                expectedOutput,
+                updatesPerOwnerRepositoryBranch,
+                labels,
+                description,
+                skipCollaboratorCheck,
+                branchName,
+                pullRequestTitle,
+                commitMessage
+            );
             results.Add(updates);
         }
 
@@ -125,17 +144,22 @@ sealed class Syncer :
         bool skipCollaboratorCheck,
         string branchName,
         string pullRequestTitle,
-        string commitMessage)
+        string commitMessage
+    )
     {
         var root = updatesPerOwnerRepositoryBranch.First().Item1.Root();
 
         string commitSha;
 
-        var isCollaborator = skipCollaboratorCheck ||
-                             await this.gateway.IsCollaborator(root.Owner, root.Repository);
+        var isCollaborator =
+            skipCollaboratorCheck || await this.gateway.IsCollaborator(root.Owner, root.Repository);
         if (isCollaborator)
         {
-            commitSha = await this.ProcessUpdatesInTargetRepository(root, updatesPerOwnerRepositoryBranch, commitMessage);
+            commitSha = await this.ProcessUpdatesInTargetRepository(
+                root,
+                updatesPerOwnerRepositoryBranch,
+                commitMessage
+            );
         }
         else
         {
@@ -143,21 +167,43 @@ sealed class Syncer :
 
             if (expectedOutput != SyncOutput.CreatePullRequest)
             {
-                throw new NotSupportedException($"User is not a collaborator, sync output '{expectedOutput}' is not supported, only creating PRs is supported");
+                throw new NotSupportedException(
+                    $"User is not a collaborator, sync output '{expectedOutput}' is not supported, only creating PRs is supported"
+                );
             }
 
-            commitSha = await this.ProcessUpdatesInFork(root, branchName, updatesPerOwnerRepositoryBranch, commitMessage);
+            commitSha = await this.ProcessUpdatesInFork(
+                root,
+                branchName,
+                updatesPerOwnerRepositoryBranch,
+                commitMessage
+            );
         }
 
         if (expectedOutput == SyncOutput.CreateCommit)
         {
-            return new($"https://github.com/{root.Owner}/{root.Repository}/commit/{commitSha}", commitSha, null, null);
+            return new(
+                $"https://github.com/{root.Owner}/{root.Repository}/commit/{commitSha}",
+                commitSha,
+                null,
+                null
+            );
         }
 
         if (expectedOutput == SyncOutput.CreateBranch)
         {
-            branchName = await this.gateway.CreateBranch(root.Owner, root.Repository, branchName, commitSha);
-            return new($"https://github.com/{root.Owner}/{root.Repository}/compare/{UrlSanitize(root.Branch)}...{UrlSanitize(branchName)}", commitSha, branchName, null);
+            branchName = await this.gateway.CreateBranch(
+                root.Owner,
+                root.Repository,
+                branchName,
+                commitSha
+            );
+            return new(
+                $"https://github.com/{root.Owner}/{root.Repository}/compare/{UrlSanitize(root.Branch)}...{UrlSanitize(branchName)}",
+                commitSha,
+                branchName,
+                null
+            );
         }
 
         if (expectedOutput is SyncOutput.CreatePullRequest or SyncOutput.MergePullRequest)
@@ -178,20 +224,37 @@ sealed class Syncer :
                 prSourceBranch = $"{forkedRepository.Owner.Login}:{prSourceBranch}";
             }
 
-            var prNumber = await this.gateway.CreatePullRequest(root.Owner, root.Repository, prSourceBranch, root.Branch, merge, pullRequestTitle, description);
+            var prNumber = await this.gateway.CreatePullRequest(
+                root.Owner,
+                root.Repository,
+                prSourceBranch,
+                root.Branch,
+                merge,
+                pullRequestTitle,
+                description
+            );
 
             if (isCollaborator)
             {
                 await this.gateway.ApplyLabels(root.Owner, root.Repository, prNumber, labels);
             }
 
-            return new($"https://github.com/{root.Owner}/{root.Repository}/pull/{prNumber}", commitSha, root.Branch, prNumber);
+            return new(
+                $"https://github.com/{root.Owner}/{root.Repository}/pull/{prNumber}",
+                commitSha,
+                root.Branch,
+                prNumber
+            );
         }
 
         throw new NotSupportedException();
     }
 
-    async Task<string> ProcessUpdatesInTargetRepository(Parts root, IList<Tuple<Parts, IParts>> updatesPerOwnerRepositoryBranch, string commitMessage)
+    async Task<string> ProcessUpdatesInTargetRepository(
+        Parts root,
+        IList<Tuple<Parts, IParts>> updatesPerOwnerRepositoryBranch,
+        string commitMessage
+    )
     {
         var tt = new TargetTree(root);
 
@@ -211,7 +274,9 @@ sealed class Syncer :
                     break;
 
                 default:
-                    throw new InvalidOperationException($"Unsupported 'from' type ({source.GetType().FullName}).");
+                    throw new InvalidOperationException(
+                        $"Unsupported 'from' type ({source.GetType().FullName})."
+                    );
             }
         }
 
@@ -219,15 +284,32 @@ sealed class Syncer :
 
         var parentCommit = await this.gateway.RootCommitFrom(root);
 
-        var commitSha = await this.gateway.CreateCommit(btt, root.Owner, root.Repository, parentCommit.Sha, root.Branch, commitMessage);
+        var commitSha = await this.gateway.CreateCommit(
+            btt,
+            root.Owner,
+            root.Repository,
+            parentCommit.Sha,
+            root.Branch,
+            commitMessage
+        );
         return commitSha;
     }
 
-    async Task<string> ProcessUpdatesInFork(Parts root, string temporaryBranchName, IList<Tuple<Parts, IParts>> updatesPerOwnerRepositoryBranch, string commitMessage)
+    async Task<string> ProcessUpdatesInFork(
+        Parts root,
+        string temporaryBranchName,
+        IList<Tuple<Parts, IParts>> updatesPerOwnerRepositoryBranch,
+        string commitMessage
+    )
     {
         var forkedRepository = await this.gateway.Fork(root.Owner, root.Repository);
 
-        var temporaryPath = Path.Combine(Path.GetTempPath(), "GitHubSync", root.Owner, root.Repository);
+        var temporaryPath = Path.Combine(
+            Path.GetTempPath(),
+            "GitHubSync",
+            root.Owner,
+            root.Repository
+        );
 
         if (Directory.Exists(temporaryPath))
         {
@@ -237,31 +319,47 @@ sealed class Syncer :
         Directory.CreateDirectory(temporaryPath);
 
         // Step 1: clone the fork
-        var repositoryPath = LibGit2Sharp.Repository.Clone(forkedRepository.CloneUrl, temporaryPath, new()
-        {
-            BranchName = root.Branch
-        });
+        var repositoryPath = LibGit2Sharp.Repository.Clone(
+            forkedRepository.CloneUrl,
+            temporaryPath,
+            new() { BranchName = root.Branch }
+        );
 
         var currentUser = await this.gateway.GetCurrentUser();
-        var commitSignature = new LibGit2Sharp.Signature(currentUser.Name, currentUser.Email ?? "hidden@protected.com", DateTimeOffset.Now);
+        var commitSignature = new LibGit2Sharp.Signature(
+            currentUser.Name,
+            currentUser.Email ?? "hidden@protected.com",
+            DateTimeOffset.Now
+        );
 
         using var repository = new LibGit2Sharp.Repository(repositoryPath);
         // Step 2: ensure upstream
         var remotes = repository.Network.Remotes;
         var originRemote = remotes["origin"];
-        var upstreamRemote = remotes["upstream"] ?? remotes.Add("upstream", $"https://github.com/{root.Owner}/{root.Repository}");
+        var upstreamRemote =
+            remotes["upstream"]
+            ?? remotes.Add("upstream", $"https://github.com/{root.Owner}/{root.Repository}");
 
-        LibGit2Sharp.Commands.Fetch(repository, "upstream", upstreamRemote.FetchRefSpecs.Select(r => r.Specification), null, null);
+        LibGit2Sharp.Commands.Fetch(
+            repository,
+            "upstream",
+            upstreamRemote.FetchRefSpecs.Select(r => r.Specification),
+            null,
+            null
+        );
 
         // Step 3: create local branch
         var tempBranch = repository.Branches.Add(temporaryBranchName, "HEAD");
-        repository.Branches.Update(tempBranch, b =>
-        {
-            b.Remote = originRemote.Name;
-            b.UpstreamBranch = tempBranch.CanonicalName;
-            //b.Upstream = $"refs/heads/{temporaryBranchName}";
-            //b.UpstreamBranch = $""
-        });
+        repository.Branches.Update(
+            tempBranch,
+            b =>
+            {
+                b.Remote = originRemote.Name;
+                b.UpstreamBranch = tempBranch.CanonicalName;
+                //b.Upstream = $"refs/heads/{temporaryBranchName}";
+                //b.UpstreamBranch = $""
+            }
+        );
 
         LibGit2Sharp.Commands.Checkout(repository, tempBranch);
 
@@ -275,7 +373,10 @@ sealed class Syncer :
         {
             var source = change.Item2;
             var destination = change.Item1;
-            var fullDestination = Path.Combine(temporaryPath, destination.Path!.Replace('/', Path.DirectorySeparatorChar));
+            var fullDestination = Path.Combine(
+                temporaryPath,
+                destination.Path!.Replace('/', Path.DirectorySeparatorChar)
+            );
 
             switch (source)
             {
@@ -292,7 +393,9 @@ sealed class Syncer :
                     break;
 
                 default:
-                    throw new InvalidOperationException($"Unsupported 'from' type ({source.GetType().FullName}).");
+                    throw new InvalidOperationException(
+                        $"Unsupported 'from' type ({source.GetType().FullName})."
+                    );
             }
         }
 
@@ -300,19 +403,20 @@ sealed class Syncer :
         LibGit2Sharp.Commands.Stage(repository, "*");
 
         // Step 7: create & push commit
-        var commit = repository.Commit(commitMessage, commitSignature, commitSignature,
-            new());
+        var commit = repository.Commit(commitMessage, commitSignature, commitSignature, new());
 
-        repository.Network.Push(tempBranch, new()
-        {
-            CredentialsProvider = (_, _, _) => this.credentials.CreateLibGit2SharpCredentials()
-        });
+        repository.Network.Push(
+            tempBranch,
+            new()
+            {
+                CredentialsProvider = (_, _, _) => this.credentials.CreateLibGit2SharpCredentials(),
+            }
+        );
 
         return commit.Sha;
     }
 
-    static string UrlSanitize(string branch) =>
-        branch.Replace("/", ";");
+    static string UrlSanitize(string branch) => branch.Replace("/", ";");
 
     async Task<string> BuildTargetTree(TargetTree tt)
     {
@@ -340,11 +444,7 @@ sealed class Syncer :
                 continue;
             }
 
-            newTree.Tree.Add(
-                "040000",
-                st.Current.Name!,
-                sha,
-                TreeType.Tree);
+            newTree.Tree.Add("040000", st.Current.Name!, sha, TreeType.Tree);
         }
 
         foreach (var l in tt.LeavesToDrop.Values)
@@ -374,15 +474,12 @@ sealed class Syncer :
                         sourceBlobItem.Mode,
                         destination.Name!,
                         source.Sha!,
-                        TreeType.Blob);
+                        TreeType.Blob
+                    );
                     break;
 
                 case TreeEntryTargetType.Tree:
-                    newTree.Tree.Add(
-                        "040000",
-                        destination.Name!,
-                        source.Sha!,
-                        TreeType.Tree);
+                    newTree.Tree.Add("040000", destination.Name!, source.Sha!, TreeType.Tree);
                     break;
 
                 default:
@@ -405,10 +502,24 @@ sealed class Syncer :
         switch (source.Type)
         {
             case TreeEntryTargetType.Blob:
-                this.logger.DetermineIfBlobRequiresCreation(shortSha, destination.Owner, destination.Repository);
-                return this.SyncBlob(source.Owner, source.Repository, sourceSha, destination.Owner, destination.Repository);
+                this.logger.DetermineIfBlobRequiresCreation(
+                    shortSha,
+                    destination.Owner,
+                    destination.Repository
+                );
+                return this.SyncBlob(
+                    source.Owner,
+                    source.Repository,
+                    sourceSha,
+                    destination.Owner,
+                    destination.Repository
+                );
             case TreeEntryTargetType.Tree:
-                this.logger.DetermineIfTreeRequiresCreation(shortSha, destination.Owner, destination.Repository);
+                this.logger.DetermineIfTreeRequiresCreation(
+                    shortSha,
+                    destination.Owner,
+                    destination.Repository
+                );
                 return this.SyncTree(source, destination.Owner, destination.Repository);
             default:
                 throw new NotSupportedException();
@@ -433,17 +544,19 @@ sealed class Syncer :
 
         foreach (var treeItem in destinationParentTree.Tree)
         {
-            newTree.Tree.Add(
-                treeItem.Mode,
-                treeItem.Name,
-                treeItem.Sha,
-                treeItem.Type);
+            newTree.Tree.Add(treeItem.Mode, treeItem.Name, treeItem.Sha, treeItem.Type);
         }
 
         return newTree;
     }
 
-    async Task SyncBlob(string sourceOwner, string sourceRepository, string sha, string destinationOwner, string destinationRepository)
+    async Task SyncBlob(
+        string sourceOwner,
+        string sourceRepository,
+        string sha,
+        string destinationOwner,
+        string destinationRepository
+    )
     {
         if (this.gateway.IsKnownBy<IBlob>(sha, destinationOwner, destinationRepository))
         {
@@ -458,7 +571,13 @@ sealed class Syncer :
     {
         var sourceSha = source.Sha!;
 
-        if (this.gateway.IsKnownBy<ITreeResponse>(sourceSha, destinationOwner, destinationRepository))
+        if (
+            this.gateway.IsKnownBy<ITreeResponse>(
+                sourceSha,
+                destinationOwner,
+                destinationRepository
+            )
+        )
         {
             return;
         }
@@ -478,11 +597,21 @@ sealed class Syncer :
             switch (value)
             {
                 case TreeType.Blob:
-                    await this.SyncBlob(source.Owner, source.Repository, i.Sha, destinationOwner, destinationRepository);
+                    await this.SyncBlob(
+                        source.Owner,
+                        source.Repository,
+                        i.Sha,
+                        destinationOwner,
+                        destinationRepository
+                    );
                     break;
 
                 case TreeType.Tree:
-                    await this.SyncTree(treeFrom.Item1.Combine(TreeEntryTargetType.Tree, i.Path, i.Sha, i.Mode), destinationOwner, destinationRepository);
+                    await this.SyncTree(
+                        treeFrom.Item1.Combine(TreeEntryTargetType.Tree, i.Path, i.Sha, i.Mode),
+                        destinationOwner,
+                        destinationRepository
+                    );
                     break;
                 case TreeType.Commit:
                     break;
@@ -530,6 +659,5 @@ sealed class Syncer :
         return outPart;
     }
 
-    public void Dispose() =>
-        this.gateway.Dispose();
+    public void Dispose() => this.gateway.Dispose();
 }

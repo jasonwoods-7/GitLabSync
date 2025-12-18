@@ -12,6 +12,5 @@ sealed class Repository
 
     public List<string> Templates { get; set; } = [];
 
-    public override string ToString() =>
-        $"{this.Name} ({this.Url})";
+    public override string ToString() => $"{this.Name} ({this.Url})";
 }

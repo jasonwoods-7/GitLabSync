@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <ToolCommandName>gitlabsync</ToolCommandName>
@@ -27,5 +26,4 @@
   <ItemGroup>
     <None Include="../../readme.md" Pack="true" PackagePath="readme.md" />
   </ItemGroup>
-
 </Project>
