@@ -11,21 +11,25 @@ namespace GitSync.GitLab;
 
 [SuppressMessage("ReSharper", "AsyncApostle.AsyncMethodNamingHighlighting")]
 [SuppressMessage("ReSharper", "AsyncApostle.ConfigureAwaitHighlighting")]
-sealed class GitLabGateway
-(
-    IGitLabClient client,
-    ILogger logger
-) : IGitProviderGateway
+sealed class GitLabGateway(IGitLabClient client, ILogger logger) : IGitProviderGateway
 {
     const string ExecutableMode = "100755";
 
     readonly Dictionary<string, Tuple<Parts, ITreeItem>?> blobCachePerPath = [];
     readonly Dictionary<string, Tuple<Parts, ITreeResponse>?> treeCachePerPath = [];
-    readonly Dictionary<string, Commit> commitCachePerOwnerRepositoryBranch = new(StringComparer.OrdinalIgnoreCase);
+    readonly Dictionary<string, Commit> commitCachePerOwnerRepositoryBranch = new(
+        StringComparer.OrdinalIgnoreCase
+    );
     readonly Dictionary<string, INewTree> treeCache = new(StringComparer.OrdinalIgnoreCase);
-    readonly Dictionary<string, (string, string, string, string)> commitCache = new(StringComparer.OrdinalIgnoreCase);
-    readonly Dictionary<string, ISet<string>> knownBlobsPerRepository = new(StringComparer.OrdinalIgnoreCase);
-    readonly Dictionary<string, ISet<string>> knownTreesPerRepository = new(StringComparer.OrdinalIgnoreCase);
+    readonly Dictionary<string, (string, string, string, string)> commitCache = new(
+        StringComparer.OrdinalIgnoreCase
+    );
+    readonly Dictionary<string, ISet<string>> knownBlobsPerRepository = new(
+        StringComparer.OrdinalIgnoreCase
+    );
+    readonly Dictionary<string, ISet<string>> knownTreesPerRepository = new(
+        StringComparer.OrdinalIgnoreCase
+    );
 
     readonly Lazy<string> blobStoragePath = new(() =>
     {
@@ -44,24 +48,25 @@ sealed class GitLabGateway
         }
     }
 
-    public Task<IUser> GetCurrentUser() =>
-        Task.FromResult<IUser>(new User(client.Users.Current));
+    public Task<IUser> GetCurrentUser() => Task.FromResult<IUser>(new User(client.Users.Current));
 
     public async Task<bool> IsCollaborator(string owner, string name)
     {
-        var project = await client
-            .Projects
-            .GetByIdAsync(await client.GetProjectId(owner, name), new());
+        var project = await client.Projects.GetByIdAsync(
+            await client.GetProjectId(owner, name),
+            new()
+        );
 
-        return project.Permissions.ProjectAccess is { AccessLevel: >= AccessLevel.Developer } ||
-               project.Permissions.GroupAccess is { AccessLevel: >= AccessLevel.Developer };
+        return project.Permissions.ProjectAccess is { AccessLevel: >= AccessLevel.Developer }
+            || project.Permissions.GroupAccess is { AccessLevel: >= AccessLevel.Developer };
     }
 
     public async Task<IRepository> Fork(string owner, string name)
     {
-        var forked = await client
-            .Projects
-            .ForkAsync((await client.GetProjectId(owner, name)).ToString(CultureInfo.InvariantCulture), new());
+        var forked = await client.Projects.ForkAsync(
+            (await client.GetProjectId(owner, name)).ToString(CultureInfo.InvariantCulture),
+            new()
+        );
 
         var project = await client.Projects.GetByIdAsync(forked.Id, new());
 
@@ -93,12 +98,14 @@ sealed class GitLabGateway
             return commit;
         }
 
-        var repositoryClient = client
-            .GetRepository(await client.GetProjectId(source.Owner, source.Repository));
+        var repositoryClient = client.GetRepository(
+            await client.GetProjectId(source.Owner, source.Repository)
+        );
 
         commit = await Commit.CreateAsync(
             repositoryClient.Branches[source.Branch].Commit,
-            repositoryClient);
+            repositoryClient
+        );
 
         this.commitCachePerOwnerRepositoryBranch[orb] = commit;
 
@@ -153,9 +160,7 @@ sealed class GitLabGateway
                 .GetTreeAsync(new() { Ref = source.Branch, Path = parentPath })
                 .FirstOrDefault(t => t.Name == source.Name);
         }
-        catch (GitLabException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-        {
-        }
+        catch (GitLabException ex) when (ex.StatusCode == HttpStatusCode.NotFound) { }
 
         if (blob is null)
         {
@@ -167,7 +172,15 @@ sealed class GitLabGateway
             return null;
         }
 
-        var parts = new Parts(source.Owner, source.Repository, TreeEntryTargetType.Blob, source.Branch, source.Path, blob.Id.ToString(), blob.Mode);
+        var parts = new Parts(
+            source.Owner,
+            source.Repository,
+            TreeEntryTargetType.Blob,
+            source.Branch,
+            source.Path,
+            blob.Id.ToString(),
+            blob.Mode
+        );
         var item = new TreeItem(blob);
 
         result = new(parts, item);
@@ -219,9 +232,21 @@ sealed class GitLabGateway
         throw new NotSupportedException();
     }
 
-    public async Task<string> CreateCommit(string treeSha, string owner, string repo, string parentCommitSha, string branch, string commitMessage)
+    public async Task<string> CreateCommit(
+        string treeSha,
+        string owner,
+        string repo,
+        string parentCommitSha,
+        string branch,
+        string commitMessage
+    )
     {
-        var commitId = await GitHashHelper.GetCommitHash(treeSha, parentCommitSha, commitMessage, client.Users.Current);
+        var commitId = await GitHashHelper.GetCommitHash(
+            treeSha,
+            parentCommitSha,
+            commitMessage,
+            client.Users.Current
+        );
 
         this.commitCache[commitId] = (treeSha, parentCommitSha, commitMessage, branch);
 
@@ -240,9 +265,9 @@ sealed class GitLabGateway
 
     public
 #if DEBUG
-        async
+    async
 #endif
-        Task CreateBlob(string owner, string repository, string sha)
+    Task CreateBlob(string owner, string repository, string sha)
     {
 #if DEBUG
         var blobPath = Path.Combine(this.blobStoragePath.Value, sha);
@@ -273,22 +298,29 @@ sealed class GitLabGateway
 
         client
             .GetRepository(await client.GetProjectId(owner, repository))
-            .GetRawBlob(sha, s =>
-            {
-                using var fs = File.Create(blobPath);
-                s.CopyTo(fs);
-            });
+            .GetRawBlob(
+                sha,
+                s =>
+                {
+                    using var fs = File.Create(blobPath);
+                    s.CopyTo(fs);
+                }
+            );
     }
 
-    public async Task<string> CreateBranch(string owner, string repository, string branchName, string commitSha)
+    public async Task<string> CreateBranch(
+        string owner,
+        string repository,
+        string branchName,
+        string commitSha
+    )
     {
         var (treeSha, parentCommitSha, commitMessage, sourceBranch) = this.commitCache[commitSha];
 
         var repo = client.GetRepository(await client.GetProjectId(owner, repository));
         var parentTree = repo.GetTreeAsync(new() { Ref = sourceBranch, Recursive = true }).ToList();
         var updatedTree = this.treeCache[treeSha]
-            .Tree
-            .SelectMany(t =>
+            .Tree.SelectMany(t =>
             {
                 if (t.Type == TreeType.Tree && this.treeCache.TryGetValue(t.Sha, out var subTree))
                 {
@@ -302,18 +334,23 @@ sealed class GitLabGateway
 
         var commit = client
             .GetCommits(await client.GetProjectId(owner, repository))
-            .Create(new()
-            {
-                CommitMessage = commitMessage,
-                Branch = branchName,
-                StartSha = parentCommitSha.ToLower(CultureInfo.InvariantCulture),
-                Actions = updatedTree
-            });
+            .Create(
+                new()
+                {
+                    CommitMessage = commitMessage,
+                    Branch = branchName,
+                    StartSha = parentCommitSha.ToLower(CultureInfo.InvariantCulture),
+                    Actions = updatedTree,
+                }
+            );
 
         return commit.WebUrl;
     }
 
-    IEnumerable<CreateCommitAction> CreateCommitActionSelector(INewTreeItem item, IReadOnlyList<NGitLab.Models.Tree> parentTree)
+    IEnumerable<CreateCommitAction> CreateCommitActionSelector(
+        INewTreeItem item,
+        IReadOnlyList<NGitLab.Models.Tree> parentTree
+    )
     {
         if (item.Type != TreeType.Blob)
         {
@@ -328,7 +365,7 @@ sealed class GitLabGateway
             {
                 Action = "create",
                 FilePath = item.Path,
-                Content = File.ReadAllText(Path.Combine(this.blobStoragePath.Value, item.Sha))
+                Content = File.ReadAllText(Path.Combine(this.blobStoragePath.Value, item.Sha)),
             };
 
             if (item.Mode == ExecutableMode)
@@ -337,7 +374,7 @@ sealed class GitLabGateway
                 {
                     Action = "chmod",
                     FilePath = item.Path,
-                    IsExecutable = true
+                    IsExecutable = true,
                 };
             }
 
@@ -350,7 +387,7 @@ sealed class GitLabGateway
             {
                 Action = "update",
                 FilePath = item.Path,
-                Content = File.ReadAllText(Path.Combine(this.blobStoragePath.Value, item.Sha))
+                Content = File.ReadAllText(Path.Combine(this.blobStoragePath.Value, item.Sha)),
             };
         }
 
@@ -360,28 +397,43 @@ sealed class GitLabGateway
             {
                 Action = "chmod",
                 FilePath = item.Path,
-                IsExecutable = item.Mode == ExecutableMode
+                IsExecutable = item.Mode == ExecutableMode,
             };
         }
     }
 
-    public async Task<long> CreatePullRequest(string owner, string repository, string branch, string targetBranch, bool merge, string title, string? description)
+    public async Task<long> CreatePullRequest(
+        string owner,
+        string repository,
+        string branch,
+        string targetBranch,
+        bool merge,
+        string title,
+        string? description
+    )
     {
         var mergeRequest = client
             .GetMergeRequest(await client.GetProjectId(owner, repository))
-            .Create(new()
-            {
-                SourceBranch = branch,
-                TargetBranch = targetBranch,
-                Title = title,
-                Description = description,
-                RemoveSourceBranch = true
-            });
+            .Create(
+                new()
+                {
+                    SourceBranch = branch,
+                    TargetBranch = targetBranch,
+                    Title = title,
+                    Description = description,
+                    RemoveSourceBranch = true,
+                }
+            );
 
         return mergeRequest.Iid;
     }
 
-    public async Task<IReadOnlyList<ILabel>> ApplyLabels(string owner, string repository, long issueNumber, string[] labels)
+    public async Task<IReadOnlyList<ILabel>> ApplyLabels(
+        string owner,
+        string repository,
+        long issueNumber,
+        string[] labels
+    )
     {
         if (labels.Length == 0)
         {
@@ -390,12 +442,8 @@ sealed class GitLabGateway
 
         return client
             .GetMergeRequest(await client.GetProjectId(owner, repository))
-            .Update(issueNumber, new()
-            {
-                AddLabels = string.Join(",", labels)
-            })
-            .Labels
-            .Select(l => new Label(l))
+            .Update(issueNumber, new() { AddLabels = string.Join(",", labels) })
+            .Labels.Select(l => new Label(l))
             .ToList();
     }
 

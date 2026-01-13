@@ -10,11 +10,9 @@ sealed class TargetTree(Parts root)
     public readonly Parts Current = root;
     public static string EmptyTreeSha = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
 
-    public void Add(Parts destination, Parts source) =>
-        this.AddOrRemove(destination, source, 0);
+    public void Add(Parts destination, Parts source) => this.AddOrRemove(destination, source, 0);
 
-    public void Remove(Parts destination) =>
-        this.AddOrRemove(destination, Parts.Empty, 0);
+    public void Remove(Parts destination) => this.AddOrRemove(destination, Parts.Empty, 0);
 
     void AddOrRemove(Parts destination, IParts source, int level)
     {
@@ -22,7 +20,8 @@ sealed class TargetTree(Parts root)
 
         Debug.Assert(
             source is Parts.NullParts || toBeAdded,
-            $"Unsupported 'from' type ({source.GetType().FullName}).");
+            $"Unsupported 'from' type ({source.GetType().FullName})."
+        );
 
         var segmentedParts = destination.SegmentPartsByNestingLevel(level);
 

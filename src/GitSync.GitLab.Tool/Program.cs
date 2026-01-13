@@ -43,9 +43,14 @@ if (args.Length == 1)
     return await SynchronizeRepositoriesAsync(path, credentials, logger).ConfigureAwait(false);
 }
 
-return await SynchronizeRepositoriesAsync("gitlabsync.yaml", credentials, logger).ConfigureAwait(false);
+return await SynchronizeRepositoriesAsync("gitlabsync.yaml", credentials, logger)
+    .ConfigureAwait(false);
 
-static async Task<int> SynchronizeRepositoriesAsync(string fileName, ICredentials credentials, ILogger logger)
+static async Task<int> SynchronizeRepositoriesAsync(
+    string fileName,
+    ICredentials credentials,
+    ILogger logger
+)
 {
     var context = ContextLoader.Load(fileName);
 
@@ -62,9 +67,14 @@ static async Task<int> SynchronizeRepositoriesAsync(string fileName, ICredential
 
         try
         {
-            await SyncRepository(context, targetRepository, credentials, logger).ConfigureAwait(false);
+            await SyncRepository(context, targetRepository, credentials, logger)
+                .ConfigureAwait(false);
 
-            logger.Synchronized(prefix, targetRepository, stopwatch.Elapsed.ToString(@"hh\:mm\:ss", CultureInfo.CurrentCulture));
+            logger.Synchronized(
+                prefix,
+                targetRepository,
+                stopwatch.Elapsed.ToString(@"hh\:mm\:ss", CultureInfo.CurrentCulture)
+            );
         }
         catch (Exception exception)
         {
@@ -80,15 +90,19 @@ static Task<IReadOnlyList<UpdateResult>> SyncRepository(
     Context context,
     Repository targetRepository,
     ICredentials credentials,
-    ILogger logger)
+    ILogger logger
+)
 {
     var sync = new RepoSync(logger, targetRepository.Labels);
 
     var targetInfo = BuildInfo(targetRepository.Url, targetRepository.Branch, credentials);
     sync.AddTargetRepository(targetInfo);
 
-    foreach (var sourceRepository in targetRepository.Templates
-                 .Select(t => context.Templates.First(x => x.name == t)))
+    foreach (
+        var sourceRepository in targetRepository.Templates.Select(t =>
+            context.Templates.First(x => x.name == t)
+        )
+    )
     {
         var sourceInfo = BuildInfo(sourceRepository.url, sourceRepository.branch, credentials);
         sync.AddSourceRepository(sourceInfo);
@@ -106,7 +120,8 @@ static Task<IReadOnlyList<UpdateResult>> SyncRepository(
         $"GitLabSync update - {targetRepository.Branch}",
         branchName,
         $"chore(sync): gitLabSync update - {branchName}",
-        syncOutput);
+        syncOutput
+    );
 }
 
 static RepositoryInfo BuildInfo(string url, string branch, ICredentials credentials)
