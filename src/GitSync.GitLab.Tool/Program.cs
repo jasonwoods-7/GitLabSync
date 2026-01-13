@@ -82,7 +82,7 @@ static Task<IReadOnlyList<UpdateResult>> SyncRepository(
     ICredentials credentials,
     ILogger logger)
 {
-    var sync = new RepoSync(logger);
+    var sync = new RepoSync(logger, targetRepository.Labels);
 
     var targetInfo = BuildInfo(targetRepository.Url, targetRepository.Branch, credentials);
     sync.AddTargetRepository(targetInfo);
