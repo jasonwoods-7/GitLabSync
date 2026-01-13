@@ -14,6 +14,5 @@ sealed class Repository
 
     public List<string> Labels { get; set; } = [];
 
-    public override string ToString() =>
-        $"{this.Name} ({this.Url})";
+    public override string ToString() => $"{this.Name} ({this.Url})";
 }

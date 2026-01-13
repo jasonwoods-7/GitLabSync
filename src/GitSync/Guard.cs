@@ -3,7 +3,10 @@ using System.Runtime.CompilerServices;
 static class Guard
 {
     // ReSharper disable UnusedParameter.Global
-    public static void AgainstNull(object value, [CallerArgumentExpression(nameof(value))] string paramName = "")
+    public static void AgainstNull(
+        object value,
+        [CallerArgumentExpression(nameof(value))] string paramName = ""
+    )
     {
         if (value == null)
         {
@@ -11,7 +14,10 @@ static class Guard
         }
     }
 
-    public static void AgainstNullAndEmpty(string value, [CallerArgumentExpression(nameof(value))] string paramName = "")
+    public static void AgainstNullAndEmpty(
+        string value,
+        [CallerArgumentExpression(nameof(value))] string paramName = ""
+    )
     {
         if (string.IsNullOrWhiteSpace(value))
         {
@@ -19,7 +25,10 @@ static class Guard
         }
     }
 
-    public static void AgainstEmpty(string? value, [CallerArgumentExpression(nameof(value))] string paramName = "")
+    public static void AgainstEmpty(
+        string? value,
+        [CallerArgumentExpression(nameof(value))] string paramName = ""
+    )
     {
         if (value == null)
         {

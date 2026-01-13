@@ -1,5 +1,4 @@
 <Project>
-
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
@@ -28,5 +27,4 @@
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
-
 </Project>
