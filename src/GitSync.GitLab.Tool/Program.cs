@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Globalization;
 using GitSync;
 using GitSync.GitLab;
 using GitSync.GitLab.Tool;
@@ -61,8 +60,9 @@ static async Task<int> SynchronizeRepositoriesAsync(
         var targetRepository = repositories[i];
 
         var prefix = $"[({i + 1} / {repositories.Count})]";
+        using var _ = logger.BeginScope(prefix);
 
-        logger.SettingUpSynchronization(prefix, targetRepository);
+        logger.SettingUpSynchronization(targetRepository);
         var stopwatch = Stopwatch.StartNew();
 
         try
@@ -70,11 +70,7 @@ static async Task<int> SynchronizeRepositoriesAsync(
             await SyncRepository(context, targetRepository, credentials, logger)
                 .ConfigureAwait(false);
 
-            logger.Synchronized(
-                prefix,
-                targetRepository,
-                stopwatch.Elapsed.ToString(@"hh\:mm\:ss", CultureInfo.CurrentCulture)
-            );
+            logger.Synchronized(targetRepository, stopwatch.Elapsed);
         }
         catch (Exception exception)
         {
