@@ -1,0 +1,42 @@
+﻿{
+  log: [
+    {
+      Debug: Ctor - Create temp blob storage '{TempPath}GitHubSync-Guid_1',
+      Category: GitLabGateway,
+      EventId: {
+        Id: 1,
+        Name: CreateTempBlobStorage
+      },
+      State: [
+        {
+          Path: {TempPath}GitHubSync-Guid_1
+        },
+        {
+          {OriginalFormat}: Ctor - Create temp blob storage '{Path}'
+        }
+      ]
+    },
+    {
+      Debug: API Query - Retrieve blob 'b45ef6f' details from 'group/project',
+      Category: GitLabGateway,
+      EventId: {
+        Id: 3,
+        Name: RetrieveBlobDetails
+      },
+      State: [
+        {
+          Sha: b45ef6f
+        },
+        {
+          Owner: group
+        },
+        {
+          Repository: project
+        },
+        {
+          {OriginalFormat}: API Query - Retrieve blob '{Sha}' details from '{Owner}/{Repository}'
+        }
+      ]
+    }
+  ]
+}
