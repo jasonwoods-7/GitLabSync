@@ -7,7 +7,6 @@
     <PackageReference Include="ConfigureAwait.Fody" PrivateAssets="all" />
     <PackageReference Include="Fody" PrivateAssets="all" />
     <PackageReference Include="NGitLab" />
-    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
   <ItemGroup>
