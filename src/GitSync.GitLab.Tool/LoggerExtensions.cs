@@ -18,24 +18,22 @@ static partial class LoggerExtensions
     [LoggerMessage(
         EventId = 3,
         Level = LogLevel.Debug,
-        Message = "{Prefix} Setting up synchronization for '{TargetRepository}'"
+        Message = "Setting up synchronization for '{TargetRepository}'"
     )]
     public static partial void SettingUpSynchronization(
         this ILogger logger,
-        string prefix,
         Repository targetRepository
     );
 
     [LoggerMessage(
         EventId = 4,
         Level = LogLevel.Debug,
-        Message = "{Prefix} Synchronized '{TargetRepository}', took {Time}"
+        Message = "Synchronized '{TargetRepository}', took {Time:g}"
     )]
     public static partial void Synchronized(
         this ILogger logger,
-        string prefix,
         Repository targetRepository,
-        string time
+        TimeSpan time
     );
 
     [LoggerMessage(
