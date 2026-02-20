@@ -1,0 +1,15 @@
+﻿{
+  Item1: {
+    Owner: group,
+    Repository: project,
+    Type: Tree,
+    Branch: main,
+    Path: subFolder,
+    Name: subFolder,
+    NumberOfPathSegments: 1,
+    Url: https://github.com/group/project/tree/main/subFolder
+  },
+  Item2: {
+    Path: subFolder
+  }
+}

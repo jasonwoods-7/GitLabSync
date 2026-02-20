@@ -1,0 +1,5 @@
+﻿{
+  Type: GitSyncException,
+  Message: [Blob: https://github.com/group/project/blob/main/hello.txt] doesn't exist.,
+  StackTrace: at GitSync.GitLab.GitLabGateway.BlobFrom(Parts source, Boolean throwsIfNotFound)
+}
