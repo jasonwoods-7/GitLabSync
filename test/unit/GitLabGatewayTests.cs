@@ -787,6 +787,77 @@ public class GitLabGatewayTests
     }
 
     [Fact]
+    public async Task CreateBranchNewFileInNewNestedFolder()
+    {
+        // Arrange
+        var provider = new RecordingProvider();
+
+        using var _ = Recording.Start();
+
+        using var server = new GitLabConfig()
+            .WithUser("user", isDefault: true)
+            .WithProjectOfFullPath(
+                "group/project",
+                addDefaultUserAsMaintainer: true,
+                configure: p =>
+                    p.WithCommit(
+                        "Initial commit",
+                        configure: c =>
+                            c.WithFile("readme.md", "Hello, World!")
+                                .WithFile(".github/CODEOWNERS", "Hello, World!")
+                    )
+            )
+            .BuildServer();
+        var client = server.CreateClient();
+        using var gateway = new GitLabGateway(client, provider.CreateLogger<GitLabGateway>());
+
+        // Build: .github/workflows/ci.yml (new) alongside existing .github/CODEOWNERS
+        var workflowsTree = gateway.CreateNewTree(".github/workflows");
+        workflowsTree.Tree.Add("100644", "ci.yml", HelloWorldSha, TreeType.Blob);
+
+        var githubTree = gateway.CreateNewTree(".github");
+        githubTree.Tree.Add("100644", "CODEOWNERS", HelloWorldSha, TreeType.Blob);
+        githubTree.Tree.Add(
+            "040000",
+            "workflows",
+            await gateway.CreateTree(workflowsTree, "group", "project"),
+            TreeType.Tree
+        );
+
+        var newTree = gateway.CreateNewTree(null);
+        newTree.Tree.Add(
+            "040000",
+            ".github",
+            await gateway.CreateTree(githubTree, "group", "project"),
+            TreeType.Tree
+        );
+
+        await gateway.FetchBlob("group", "project", HelloWorldSha);
+
+        var treeId = await gateway.CreateTree(newTree, "group", "project");
+        var commitId = await gateway.CreateCommit(
+            treeId,
+            "group",
+            "project",
+            "main",
+            "main",
+            "chore(sync): gitlab sync"
+        );
+
+        // Act
+        var branch = await gateway.CreateBranch("group", "project", "branch", commitId);
+
+        // Assert
+        branch.ShouldMatch("[a-f0-9]{40}");
+        var filesInBranch = client
+            .GetRepository(1)
+            .GetTreeAsync(new() { Ref = "branch", Recursive = true })
+            .ToList();
+        filesInBranch.ShouldContain(f => f.Path == ".github/workflows/ci.yml");
+        await Verify();
+    }
+
+    [Fact]
     public async Task CreateBranchUpdatedFileNotExecutable()
     {
         // Arrange
