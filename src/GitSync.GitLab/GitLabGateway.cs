@@ -33,7 +33,7 @@ sealed class GitLabGateway(IGitLabClient client, ILogger logger) : IGitProviderG
 
     readonly Lazy<string> blobStoragePath = new(() =>
     {
-        var path = Path.Combine(Path.GetTempPath(), $"GitHubSync-{Guid.NewGuid()}");
+        var path = Path.Combine(Path.GetTempPath(), $"GitLabSync-{Guid.NewGuid()}");
         Directory.CreateDirectory(path);
         logger.CreateTempBlobStorage(path);
         return path;
@@ -319,16 +319,19 @@ sealed class GitLabGateway(IGitLabClient client, ILogger logger) : IGitProviderG
 
         var repo = client.GetRepository(await client.GetProjectId(owner, repository));
         var parentTree = repo.GetTreeAsync(new() { Ref = sourceBranch, Recursive = true }).ToList();
-        var updatedTree = this.treeCache[treeSha]
-            .Tree.SelectMany(t =>
-            {
-                if (t.Type == TreeType.Tree && this.treeCache.TryGetValue(t.Sha, out var subTree))
-                {
-                    return subTree.Tree.ToArray();
-                }
 
-                return [t];
-            })
+        IEnumerable<INewTreeItem> FlattenTree(INewTreeItem t)
+        {
+            if (t.Type == TreeType.Tree && this.treeCache.TryGetValue(t.Sha, out var subTree))
+            {
+                return subTree.Tree.SelectMany(FlattenTree);
+            }
+
+            return [t];
+        }
+
+        var updatedTree = this.treeCache[treeSha]
+            .Tree.SelectMany(FlattenTree)
             .SelectMany(t => this.CreateCommitActionSelector(t, parentTree))
             .ToList();
 

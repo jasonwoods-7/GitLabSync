@@ -6,7 +6,7 @@
   ],
   log: [
     {
-      Debug: Ctor - Create temp blob storage '{TempPath}GitHubSync-Guid_1',
+      Debug: Ctor - Create temp blob storage '{TempPath}GitLabSync-Guid_1',
       Category: GitLabGateway,
       EventId: {
         Id: 1,
@@ -14,7 +14,7 @@
       },
       State: [
         {
-          Path: {TempPath}GitHubSync-Guid_1
+          Path: {TempPath}GitLabSync-Guid_1
         },
         {
           {OriginalFormat}: Ctor - Create temp blob storage '{Path}'
