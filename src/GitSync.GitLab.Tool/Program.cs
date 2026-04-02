@@ -91,7 +91,12 @@ static Task<IReadOnlyList<UpdateResult>> SyncRepository(
 {
     var sync = new RepoSync(logger, targetRepository.Labels);
 
-    var targetInfo = BuildInfo(targetRepository.Url, targetRepository.Branch, credentials);
+    var targetInfo = BuildInfo(
+        targetRepository.Url,
+        targetRepository.Branch,
+        new HashSet<string>(StringComparer.Ordinal),
+        credentials
+    );
     sync.AddTargetRepository(targetInfo);
 
     foreach (
@@ -100,7 +105,12 @@ static Task<IReadOnlyList<UpdateResult>> SyncRepository(
         )
     )
     {
-        var sourceInfo = BuildInfo(sourceRepository.url, sourceRepository.branch, credentials);
+        var sourceInfo = BuildInfo(
+            sourceRepository.url,
+            sourceRepository.branch,
+            new HashSet<string>(sourceRepository.ignore, StringComparer.Ordinal),
+            credentials
+        );
         sync.AddSourceRepository(sourceInfo);
     }
 
@@ -120,9 +130,14 @@ static Task<IReadOnlyList<UpdateResult>> SyncRepository(
     );
 }
 
-static RepositoryInfo BuildInfo(string url, string branch, ICredentials credentials)
+static RepositoryInfo BuildInfo(
+    string url,
+    string branch,
+    IReadOnlySet<string> ignorePaths,
+    ICredentials credentials
+)
 {
     var company = UrlHelper.GetCompany(url);
     var project = UrlHelper.GetProject(url);
-    return new RepositoryInfo(credentials, company, project, branch);
+    return new RepositoryInfo(credentials, company, project, branch, ignorePaths);
 }

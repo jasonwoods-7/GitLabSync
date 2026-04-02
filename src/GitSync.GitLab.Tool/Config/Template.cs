@@ -8,5 +8,7 @@ sealed class Template
 
     public string branch { get; set; } = "main";
 
+    public List<string> ignore { get; set; } = [];
+
     public override string ToString() => $"{this.name} ({this.url})";
 }
