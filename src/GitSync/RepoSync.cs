@@ -91,7 +91,25 @@ public class RepoSync(
         string repository,
         string branch,
         ICredentials? credentials = null
-    ) => this.sources.Add(new(this.OrDefaultCredentials(credentials), owner, repository, branch));
+    ) =>
+        this.AddSourceRepository(
+            owner,
+            repository,
+            branch,
+            new HashSet<string>(StringComparer.Ordinal),
+            credentials
+        );
+
+    public void AddSourceRepository(
+        string owner,
+        string repository,
+        string branch,
+        IReadOnlySet<string> ignorePaths,
+        ICredentials? credentials = null
+    ) =>
+        this.sources.Add(
+            new(this.OrDefaultCredentials(credentials), owner, repository, branch, ignorePaths)
+        );
 
     public void AddTargetRepository(RepositoryInfo targetRepository) =>
         this.targets.Add(targetRepository);
@@ -101,7 +119,16 @@ public class RepoSync(
         string repository,
         string branch,
         ICredentials? credentials = null
-    ) => this.targets.Add(new(this.OrDefaultCredentials(credentials), owner, repository, branch));
+    ) =>
+        this.targets.Add(
+            new(
+                this.OrDefaultCredentials(credentials),
+                owner,
+                repository,
+                branch,
+                new HashSet<string>(StringComparer.Ordinal)
+            )
+        );
 
     ICredentials OrDefaultCredentials(ICredentials? credentials) =>
         credentials
@@ -137,6 +164,11 @@ public class RepoSync(
                 )
             )
             {
+                if (source.IgnorePaths.Contains(item))
+                {
+                    continue;
+                }
+
                 if (includedPaths.Contains(item))
                 {
                     continue;

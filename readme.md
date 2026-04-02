@@ -49,11 +49,15 @@ templates:
   - name: [template name]
     url: [repository url of the template]
     branch: [branch to use, defaults to `main`]
-    
+    ignore:
+      - [optional list of file paths to exclude from sync]
+
 repositories:
   - name: [repository name]
     url: [repository url of the target repository]
     branch: [target branch, defaults to `main`]
     templates:
       - [list of template names to use in the order to apply]
+    labels:
+      - [optional list of labels to apply to the sync pull request]
 ```
