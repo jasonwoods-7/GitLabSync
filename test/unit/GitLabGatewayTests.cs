@@ -13,14 +13,12 @@ public class GitLabGatewayTests
     public async Task GetCurrentUser()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig().WithUser("user", isDefault: true).BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         // Act
@@ -41,8 +39,6 @@ public class GitLabGatewayTests
     public async Task IsCollaboratorWithProjectAccess(AccessLevel accessLevel)
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -53,7 +49,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         // Act
@@ -74,8 +70,6 @@ public class GitLabGatewayTests
     public async Task IsCollaboratorWithGroupAccess(AccessLevel accessLevel)
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -84,7 +78,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         // Act
@@ -98,8 +92,6 @@ public class GitLabGatewayTests
     public async Task IsCollaboratorWithNoAccess()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -108,7 +100,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         // Act
@@ -122,8 +114,6 @@ public class GitLabGatewayTests
     public async Task Fork()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -132,7 +122,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         // Act
@@ -147,8 +137,6 @@ public class GitLabGatewayTests
     public async Task DownloadBlob()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -165,7 +153,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         using var targetStream = new MemoryStream();
@@ -187,8 +175,6 @@ public class GitLabGatewayTests
     public async Task HasOpenPullRequests(string? title)
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -206,7 +192,7 @@ public class GitLabGatewayTests
             .BuildServer();
         var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         // Act
@@ -220,8 +206,6 @@ public class GitLabGatewayTests
     public async Task RootCommitFrom()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -242,7 +226,10 @@ public class GitLabGatewayTests
             )
             .BuildServer();
         var client = server.CreateClient();
-        using var gateway = new GitLabGateway(client, provider.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            client,
+            RecordingProvider.CreateLogger<GitLabGateway>()
+        );
 
         // Act
         var commit = await gateway.RootCommitFrom(
@@ -258,8 +245,6 @@ public class GitLabGatewayTests
     public async Task TreeFromDoNotThrowExists()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -278,7 +263,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         // Act
@@ -295,8 +280,6 @@ public class GitLabGatewayTests
     public async Task TreeFromDoNotThrowExistsInSubDir()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -315,7 +298,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         // Act
@@ -332,8 +315,6 @@ public class GitLabGatewayTests
     public async Task TreeFromDoNotThrowDoesNotExist()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -350,7 +331,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         // Act
@@ -367,8 +348,6 @@ public class GitLabGatewayTests
     public async Task TreeFromThrowsDoesNotExist()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -385,7 +364,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         // Act
@@ -402,8 +381,6 @@ public class GitLabGatewayTests
     public async Task BlobFromDoNotThrowExists()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -420,7 +397,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         // Act
@@ -437,8 +414,6 @@ public class GitLabGatewayTests
     public async Task BlobFromDoNotThrowExistsInSubDir()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -457,7 +432,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         // Act
@@ -474,8 +449,6 @@ public class GitLabGatewayTests
     public async Task BlobFromDoNotThrowDoesNotExist()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -492,7 +465,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         // Act
@@ -509,8 +482,6 @@ public class GitLabGatewayTests
     public async Task BlobFromThrowsDoesNotExist()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -527,7 +498,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         // Act
@@ -546,8 +517,6 @@ public class GitLabGatewayTests
     public async Task CreateCommit()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -564,7 +533,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         // Act
@@ -586,8 +555,6 @@ public class GitLabGatewayTests
     public async Task CreateTreeEmpty()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -596,7 +563,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         var newTree = gateway.CreateNewTree(null);
@@ -612,8 +579,6 @@ public class GitLabGatewayTests
     public async Task CreateTreeEmptyBlob()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -628,7 +593,10 @@ public class GitLabGatewayTests
             )
             .BuildServer();
         var client = server.CreateClient();
-        using var gateway = new GitLabGateway(client, provider.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            client,
+            RecordingProvider.CreateLogger<GitLabGateway>()
+        );
 
         var repository = client.GetRepository(1);
         var gitKeep = repository.GetTreeAsync(new() { Path = "directory" }).Single();
@@ -648,8 +616,6 @@ public class GitLabGatewayTests
     public async Task CreateBlob()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -666,7 +632,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         await gateway.FetchBlob("group", "project", HelloWorldSha);
@@ -682,8 +648,6 @@ public class GitLabGatewayTests
     public async Task CreateBranchNewFileNotExecutable()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -700,7 +664,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         var newTree = gateway.CreateNewTree(null);
@@ -729,8 +693,6 @@ public class GitLabGatewayTests
     public async Task CreateBranchNewFileExecutable()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -747,7 +709,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         var newTree = gateway.CreateNewTree(null);
@@ -790,8 +752,6 @@ public class GitLabGatewayTests
     public async Task CreateBranchNewFileInNewNestedFolder()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -809,7 +769,10 @@ public class GitLabGatewayTests
             )
             .BuildServer();
         var client = server.CreateClient();
-        using var gateway = new GitLabGateway(client, provider.CreateLogger<GitLabGateway>());
+        using var gateway = new GitLabGateway(
+            client,
+            RecordingProvider.CreateLogger<GitLabGateway>()
+        );
 
         // Build: .github/workflows/ci.yml (new) alongside existing .github/CODEOWNERS
         var workflowsTree = gateway.CreateNewTree(".github/workflows");
@@ -861,8 +824,6 @@ public class GitLabGatewayTests
     public async Task CreateBranchUpdatedFileNotExecutable()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -888,7 +849,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         var newTree = gateway.CreateNewTree(null);
@@ -917,8 +878,6 @@ public class GitLabGatewayTests
     public async Task CreateBranchUpdatedFileExecutable()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var _ = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -948,7 +907,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         var sourceTree = await gateway.TreeFrom(
@@ -983,8 +942,6 @@ public class GitLabGatewayTests
     public async Task CreatePullRequest()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var recording = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -1001,7 +958,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         var newTree = gateway.CreateNewTree(null);
@@ -1039,8 +996,6 @@ public class GitLabGatewayTests
     public async Task ApplyLabels()
     {
         // Arrange
-        var provider = new RecordingProvider();
-
         using var recording = Recording.Start();
 
         using var server = new GitLabConfig()
@@ -1057,7 +1012,7 @@ public class GitLabGatewayTests
             .BuildServer();
         using var gateway = new GitLabGateway(
             server.CreateClient(),
-            provider.CreateLogger<GitLabGateway>()
+            RecordingProvider.CreateLogger<GitLabGateway>()
         );
 
         var newTree = gateway.CreateNewTree(null);
