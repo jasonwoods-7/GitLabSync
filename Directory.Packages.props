@@ -18,9 +18,9 @@
     <PackageVersion Include="NGitLab.Mock" Version="11.7.0" />
     <PackageVersion Include="Serilog.Extensions.Hosting" Version="10.0.0" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
-    <PackageVersion Include="Verify.ClipboardAccept" Version="31.16.1" />
+    <PackageVersion Include="Verify.ClipboardAccept" Version="31.16.2" />
     <PackageVersion Include="Verify.MicrosoftLogging" Version="5.0.0" />
-    <PackageVersion Include="Verify.XunitV3" Version="31.16.1" />
+    <PackageVersion Include="Verify.XunitV3" Version="31.16.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <PackageVersion Include="YamlDotNet" Version="17.0.1" />
