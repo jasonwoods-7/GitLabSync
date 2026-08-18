@@ -18,12 +18,18 @@ dotnet build -c Release
 # Run all tests
 dotnet test -c Release
 
-# Run a single test by name
-dotnet test --filter "FullyQualifiedName~TestMethodName" -c Release
+# Run a single test class / method (MTP filter options)
+dotnet test -c Release --filter-class "GitSync.GitLab.Tests.GitLabGatewayTests"
+dotnet test -c Release --filter-method "GitSync.GitLab.Tests.GitLabGatewayTests.CreatePullRequest"
 
-# Run tests in the specific test project
-dotnet test test/unit/GitSync.GitLab.Tests.csproj -c Release
+# Run tests in the specific test project (--project required by MTP, not positional)
+dotnet test -c Release --project test/unit/GitSync.GitLab.Tests.csproj
+
+# Code coverage (Microsoft.Testing.Extensions.CodeCoverage)
+dotnet test -c Release --coverage --coverage-output-format cobertura
 ```
+
+Tests run on **Microsoft.Testing.Platform (MTP)**, not VSTest. Opt-in lives in [global.json](global.json) (`test.runner`); the test project sets `OutputType=Exe` and `UseMicrosoftTestingPlatformRunner=true`. No `Microsoft.NET.Test.Sdk`, `xunit.runner.visualstudio`, or `coverlet.collector` — VSTest-only packages break on the .NET 10 SDK.
 
 Pre-commit hooks (via Husky.Net) automatically run `dotnet restore` and `dotnet build -c Release`. Pre-push hooks run the full test suite.
 
