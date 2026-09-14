@@ -17,10 +17,10 @@
     <PackageVersion Include="NGitLab.Mock" Version="12.3.0" />
     <PackageVersion Include="Serilog.Extensions.Hosting" Version="10.0.0" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
-    <PackageVersion Include="Verify.ClipboardAccept" Version="32.0.0" />
+    <PackageVersion Include="Verify.ClipboardAccept" Version="33.0.2" />
     <PackageVersion Include="Verify.MicrosoftLogging" Version="5.0.0" />
-    <PackageVersion Include="Verify.XunitV3" Version="32.0.0" />
-    <PackageVersion Include="xunit.v3" Version="4.0.0" />
+    <PackageVersion Include="Verify.XunitV3" Version="33.0.2" />
+    <PackageVersion Include="xunit.v3" Version="4.0.1" />
     <PackageVersion Include="YamlDotNet" Version="18.1.0" />
   </ItemGroup>
 </Project>

@@ -3,5 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Verify_SponsorshipExemption>OpenSource</Verify_SponsorshipExemption>
+    <Verify_SponsorshipExemptionUntil>2027-09</Verify_SponsorshipExemptionUntil>
   </PropertyGroup>
 </Project>
