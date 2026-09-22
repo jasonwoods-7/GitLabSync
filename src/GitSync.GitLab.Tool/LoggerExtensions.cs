@@ -8,7 +8,7 @@ static partial class LoggerExtensions
     [LoggerMessage(
         EventId = 1,
         Level = LogLevel.Error,
-        Message = "No environment variable 'GitLab_OAuthToken' found"
+        Message = "No GitLab token found. Set the 'GitLab_OAuthToken' environment variable or pass --token"
     )]
     public static partial void NoGitLabToken(this ILogger logger);
 
