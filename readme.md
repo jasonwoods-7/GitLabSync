@@ -39,6 +39,22 @@ Run against a specific config file:
 gitlabsync /path/to/gitlabsync.yaml
 ```
 
+#### Command-line options
+
+You can pass the token and host URL as options instead of environment variables. A CLI option always
+wins over the matching environment variable.
+
+```bash
+gitlabsync --token <personal-access-token> --host-url https://gitlab.example.com /path/to/gitlabsync.yaml
+```
+
+| Option | Short | Description |
+|--------|-------|--------------|
+| `--token` | `-t` | GitLab access token. Prefer `GitLab_OAuthToken` for normal use; this is for ad-hoc runs, since command-line arguments can end up in shell history and are visible to other processes on the machine. |
+| `--host-url` | `-u` | GitLab instance base URL (defaults to `https://gitlab.com`). |
+
+Run `gitlabsync --help` for the full list of options.
+
 ### Configuration
 
 ```yaml
