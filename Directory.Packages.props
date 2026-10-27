@@ -17,7 +17,7 @@
     <PackageVersion Include="NGitLab.Mock" Version="12.5.0" />
     <PackageVersion Include="Serilog.Extensions.Hosting" Version="10.0.0" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.13" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.14" />
     <PackageVersion Include="Verify.ClipboardAccept" Version="33.3.4" />
     <PackageVersion Include="Verify.MicrosoftLogging" Version="5.0.0" />
     <PackageVersion Include="Verify.XunitV3" Version="33.3.4" />
